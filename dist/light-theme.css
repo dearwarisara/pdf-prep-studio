@@ -331,3 +331,36 @@ body { font-size: 19px; }
 @media (max-width: 950px) {
   .input-pane, .output-pane { height: auto; }
 }
+
+/* Full-viewport workspace: use the desktop screen edge-to-edge without dead space. */
+@media (min-width: 951px) {
+  html, body { height: 100%; }
+  body { overflow: hidden; }
+  .site-frame {
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    min-height: 100vh;
+    padding: 0 16px;
+  }
+  .topbar {
+    height: 72px;
+    flex: 0 0 72px;
+  }
+  .screen {
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    gap: 24px;
+    padding: 12px 0;
+  }
+  .input-pane, .output-pane {
+    height: auto;
+    min-height: 0;
+  }
+  footer {
+    height: 28px;
+    flex: 0 0 28px;
+    padding: 0 4px;
+  }
+}
