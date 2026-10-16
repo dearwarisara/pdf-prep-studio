@@ -1,0 +1,43 @@
+/* Readable type scale: keep the visual system, increase legibility. */
+body { font-size: 18px; }
+.brand-copy { font-size: 11px; }
+.topbar-center, .topbar-right { font-size: 10px; }
+.kicker, .pane-index { font-size: 10px; }
+.intro-copy { font-size: 15px; line-height: 1.8; }
+.drop-topline { font-size: 10px; }
+.drop-copy { font-size: 15px; }
+.drop-copy span { font-size: 13px; }
+.drop-hint { font-size: 11px; }
+.file-details strong { font-size: 14px; }
+.file-details span { font-size: 11px; }
+.file-ready { font-size: 10px; }
+.primary-button { font-size: 13px; }
+.action-caption { font-size: 11px; }
+.status-panel strong { font-size: 13px; }
+.status-panel span { font-size: 11px; }
+.error-message { font-size: 12px; }
+.success-badge { font-size: 10px; }
+.output-empty strong { font-size: 16px; }
+.output-empty p { font-size: 13px; }
+.empty-tags span { font-size: 9px; }
+.result-status { font-size: 9px; }
+.result-card h3 { font-size: 14px; }
+.result-card p { font-size: 11px; }
+.download-button { font-size: 12px; }
+.verification-heading h3 { font-size: 14px; }
+.verification-heading > span { font-size: 10px; }
+.verification-item strong { font-size: 11px; }
+.verification-item small { font-size: 10px; }
+.reset-button { font-size: 12px; }
+footer { font-size: 10px; }
+
+@media (max-width: 560px) {
+  .input-pane h1 { font-size: 52px; }
+  .results-head h2 { font-size: 48px; }
+  .intro-copy { font-size: 14px; }
+  .drop-copy { font-size: 16px; }
+  .drop-copy span { font-size: 14px; }
+  .action-caption { font-size: 12px; }
+  .verification-item strong { font-size: 12px; }
+  .verification-item small { font-size: 11px; }
+}
