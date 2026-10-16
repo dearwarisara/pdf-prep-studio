@@ -71,8 +71,8 @@ body {
 .sidebar-brand small { margin-top: 2px; color: var(--text-soft); font-size: 11px; }
 .sidebar-label { margin: 0 10px 9px; color: #a1a1a6; font: 700 9px "SF Pro Text", sans-serif; letter-spacing: 1px; }
 .workflow-nav { display: flex; flex-direction: column; gap: 3px; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; color: var(--text-soft); text-decoration: none; transition: .15s ease; }
-.nav-item:hover { background: #e8e8ed; color: var(--text); }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; color: var(--text-soft); cursor: default; }
+.nav-item:hover { background: transparent; color: var(--text-soft); }
 .nav-item.active { background: var(--surface); color: var(--blue); box-shadow: 0 2px 8px rgba(40,40,60,.07); }
 .nav-icon { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 8px; background: var(--blue-soft); color: var(--blue); font-size: 18px; line-height: 1; }
 .muted-icon { background: #e9e9ed; color: #8e8e93; font-size: 14px; }
