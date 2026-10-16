@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="ลบ Metadata จาก PDF และสร้าง WebP cover ในขั้นตอนที่เข้าใจง่าย" />
-    <title>PDF Prep Studio — Clean PDFs beautifully</title>
+    <meta name="description" content="PDF Prep Studio — เตรียม PDF ลบ Metadata และสร้าง Cover ในหน้าต่างเดียว" />
+    <title>PDF Prep Studio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -13,108 +13,61 @@
     <link rel="stylesheet" href="./light-theme.css" />
   </head>
   <body>
-    <div class="site-frame">
-      <header class="topbar">
-        <a class="brand" href="#workspace" aria-label="PDF Prep Studio home">
-          <span class="brand-symbol"><span>PDF</span><i>✦</i></span>
-          <span class="brand-copy"><strong>PDF Prep</strong><em>Studio</em></span>
-        </a>
-        <div class="topbar-center"><span class="status-dot"></span><span>ทำงานบนเครื่องของคุณ</span></div>
-        <div class="topbar-right"><span class="trust-pill">ไม่อัปโหลดไฟล์</span><span class="format-pill">PDF <b>→</b> PDF + WEBP</span></div>
+    <div class="mac-window">
+      <header class="window-bar">
+        <div class="traffic-lights" aria-hidden="true"><span class="traffic-close"></span><span class="traffic-minimize"></span><span class="traffic-maximize"></span></div>
+        <div class="window-title"><strong>PDF Prep Studio</strong><span>PDF workspace</span></div>
+        <div class="window-actions"><span class="window-chip"><span class="local-dot"></span> Local only</span><span class="window-menu">•••</span></div>
       </header>
 
-      <main class="app-shell" id="workspace">
-        <section class="hero-row" aria-labelledby="workspace-title">
-          <div class="hero-copy">
-            <p class="eyebrow"><span class="eyebrow-dot"></span> PDF PREP STUDIO</p>
-            <h1 id="workspace-title">Clean your PDF<br /><i>in seconds.</i></h1>
-            <p class="hero-description">เตรียมไฟล์ให้พร้อมใช้งาน ลบ Metadata และสร้าง Cover สวยๆ ได้ใน workflow เดียว</p>
-          </div>
-          <div class="hero-aside" aria-label="สิ่งที่จะได้รับ">
-            <div class="hero-aside-title"><span>READY WHEN YOU ARE</span><b>✦</b></div>
-            <div class="benefit-row"><span class="benefit-icon">✓</span><span>ไม่แก้ไขเนื้อหาใน PDF</span></div>
-            <div class="benefit-row"><span class="benefit-icon">✓</span><span>ตั้งชื่อไฟล์ผลลัพธ์ให้อัตโนมัติ</span></div>
-          </div>
-        </section>
+      <div class="app-layout">
+        <aside class="sidebar" aria-label="เมนูการทำงาน">
+          <div class="sidebar-brand"><span class="sidebar-logo">P</span><div><strong>PDF Prep</strong><small>Studio</small></div></div>
+          <p class="sidebar-label">WORKFLOW</p>
+          <nav class="workflow-nav">
+            <a class="nav-item active" href="#upload"><span class="nav-icon">↑</span><span class="nav-copy"><strong>Prepare PDF</strong><small>Clean & export</small></span><span class="nav-arrow">›</span></a>
+            <a class="nav-item" href="#results"><span class="nav-icon muted-icon">▦</span><span class="nav-copy"><strong>Output files</strong><small>Ready to download</small></span></a>
+          </nav>
+          <div class="sidebar-spacer"></div>
+          <div class="sidebar-note"><span class="note-icon">✦</span><div><strong>Private by design</strong><p>ไฟล์อยู่บนเครื่องคุณตลอดการทำงาน</p></div></div>
+          <div class="sidebar-version">PDF PREP STUDIO <span>v1.0</span></div>
+        </aside>
 
-        <section class="workflow-grid" aria-label="PDF preparation workflow">
-          <section class="input-pane" aria-labelledby="input-heading">
-            <div class="section-heading">
-              <div class="step-number">01</div>
-              <div><p class="section-eyebrow">START HERE</p><h2 id="input-heading">นำไฟล์เข้ามา</h2></div>
-              <span class="section-status">INPUT</span>
-            </div>
-            <p class="section-description">เลือก PDF ที่ต้องการจัดเตรียม แล้วเราจะดูแลขั้นตอนที่เหลือให้เอง</p>
+        <main class="main-content" id="workspace">
+          <div class="main-toolbar"><div class="breadcrumb"><span>My Workspace</span><b>/</b><strong>Prepare PDF</strong></div><div class="toolbar-shortcut"><span>⌘</span> All processing stays local</div></div>
+          <section class="welcome-row" aria-labelledby="workspace-title">
+            <div><p class="welcome-kicker">GOOD MORNING <span>✦</span></p><h1 id="workspace-title">Polish your PDF<br /><i>in one click.</i></h1><p class="welcome-copy">ลบ Metadata และสร้าง Cover พร้อมใช้ โดยไม่เปลี่ยนแปลงเนื้อหาของไฟล์ต้นฉบับ</p></div>
+            <div class="welcome-art" aria-hidden="true"><span class="art-orb orb-one"></span><span class="art-orb orb-two"></span><span class="art-orb orb-three"></span><span class="art-paper">PDF</span></div>
+          </section>
 
+          <section class="input-pane upload-panel" id="upload" aria-labelledby="input-heading">
+            <div class="panel-bar"><div class="panel-title"><span class="panel-icon upload-icon">↑</span><div><p class="panel-eyebrow">STEP 01</p><h2 id="input-heading">Add a PDF</h2></div></div><span class="panel-meta">INPUT</span></div>
+            <div class="upload-intro"><p>ลากไฟล์มาวาง หรือเลือกจากเครื่องของคุณ</p><span>รองรับ PDF เท่านั้น · ไฟล์ต้นฉบับไม่ถูกแก้ไข</span></div>
             <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="เลือกไฟล์ PDF">
               <input id="file-input" type="file" accept=".pdf,application/pdf,application/octet-stream" hidden />
-              <div class="drop-topline"><span>DROP PDF</span><span>LOCAL ONLY</span></div>
-              <div class="drop-center">
-                <div class="drop-icon"><span>↓</span></div>
-                <div class="drop-copy"><strong>วาง PDF ลงตรงนี้</strong><span>หรือ <u>เลือกไฟล์จากเครื่อง</u></span></div>
-              </div>
-              <div class="drop-hint"><span>⌁</span> ไฟล์ต้นฉบับจะไม่ถูกแก้ไข</div>
+              <div class="drop-center"><div class="drop-icon"><span>↑</span></div><div class="drop-copy"><strong>Drop your PDF here</strong><span>หรือ <u>Choose a file</u> จากเครื่อง</span></div></div>
+              <div class="drop-hint">ไฟล์จะถูกประมวลผลในเบราว์เซอร์ของคุณ</div>
             </div>
-
-            <div class="file-card hidden" id="file-card">
-              <div class="file-icon">PDF</div>
-              <div class="file-details"><strong id="file-name">document.pdf</strong><span id="file-size">0 KB</span></div>
-              <span class="file-ready">READY</span>
-              <button id="remove-file" class="icon-button" type="button" aria-label="นำไฟล์ออก">×</button>
-            </div>
-
-            <div class="action-row">
-              <button class="primary-button" id="process-button" type="button" disabled><span id="process-label">ลบ Metadata และสร้าง Cover</span><span class="button-arrow">↗</span></button>
-              <p class="action-caption"><span class="lock-icon">✦</span><span>ประมวลผลในเครื่อง</span><small>WebP cover ไม่เกิน 500 KB</small></p>
-            </div>
+            <div class="file-card hidden" id="file-card"><div class="file-icon">PDF</div><div class="file-details"><strong id="file-name">document.pdf</strong><span id="file-size">0 KB</span></div><span class="file-ready">READY</span><button id="remove-file" class="icon-button" type="button" aria-label="นำไฟล์ออก">×</button></div>
+            <div class="action-row"><button class="primary-button" id="process-button" type="button" disabled><span id="process-label">Clean PDF & create cover</span><span class="button-arrow">↗</span></button><p class="action-caption"><span class="lock-icon">⌁</span><span>Private on this device</span><small>WebP cover ไม่เกิน 500 KB</small></p></div>
             <div class="status-panel hidden" id="status-panel" aria-live="polite"><div class="status-spinner"></div><div><strong id="status-title">กำลังเตรียมไฟล์…</strong><span id="status-detail">กำลังอ่านโครงสร้าง PDF</span></div></div>
             <p class="error-message hidden" id="error-message" role="alert"></p>
           </section>
 
-          <section class="results output-pane" id="results" aria-labelledby="results-title">
-            <div class="section-heading output-heading">
-              <div class="step-number output-step">02</div>
-              <div><p class="section-eyebrow">YOUR DOWNLOADS</p><h2 id="results-title">Your files<br /><i>are ready.</i></h2></div>
-              <span class="section-status">OUTPUT</span>
-            </div>
-            <div class="results-head"><p>ไฟล์ที่พร้อมใช้งานจะแสดงตรงนี้</p><span class="success-badge" id="overall-badge">รอไฟล์</span></div>
-
-            <div class="output-empty" id="output-empty">
-              <div class="empty-orbit"><span>✦</span></div>
-              <strong>ยังไม่มีไฟล์ให้ดาวน์โหลด</strong>
-              <p>เลือก PDF ทางซ้าย แล้วกดปุ่มเริ่มทำงาน</p>
-              <div class="empty-tags"><span>METADATA CLEAN</span><span>WEBP COVER</span></div>
-            </div>
-
+          <section class="results output-pane output-panel" id="results" aria-labelledby="results-title">
+            <div class="panel-bar"><div class="panel-title"><span class="panel-icon output-icon">↓</span><div><p class="panel-eyebrow">STEP 02</p><h2>Output files</h2></div></div><span class="success-badge" id="overall-badge">รอไฟล์</span></div>
+            <div class="results-head"><div><h2 id="results-title">Your clean files<br /><i>are ready.</i></h2><p>ไฟล์ผลลัพธ์ของคุณจะแสดงที่นี่</p></div><span class="output-state">PDF + WEBP</span></div>
+            <div class="output-empty" id="output-empty"><div class="empty-icon">↓</div><strong>Nothing here yet</strong><p>อัปโหลด PDF ด้านบนเพื่อเริ่มต้น</p></div>
             <div class="result-grid">
-              <article class="result-card">
-                <div class="result-card-top"><div class="result-type pdf-type">PDF</div><span class="result-status">METADATA REMOVED</span></div>
-                <div class="result-card-title"><h3 id="output-pdf-name">document.pdf</h3><span class="result-check">✓</span></div>
-                <p id="pdf-result-meta">—</p>
-                <a class="download-button" id="pdf-download" download><span>ดาวน์โหลด PDF</span><span>↓</span></a>
-              </article>
-              <article class="result-card cover-card">
-                <div class="result-card-top"><div class="result-type webp-type">WEBP</div><span class="result-status">FIRST PAGE COVER</span></div>
-                <div class="cover-preview"><img id="cover-preview" alt="ตัวอย่าง cover จากหน้าแรกของ PDF" /></div>
-                <div class="cover-info"><div><h3 id="output-cover-name">cover.webp</h3><p id="cover-result-meta">—</p></div><a class="download-button secondary" id="cover-download" download><span>ดาวน์โหลด Cover</span><span>↓</span></a></div>
-              </article>
+              <article class="result-card"><div class="result-card-top"><div class="result-type pdf-type">PDF</div><span class="result-status">CLEANED</span></div><div class="result-card-title"><h3 id="output-pdf-name">document.pdf</h3><span class="result-check">✓</span></div><p id="pdf-result-meta">—</p><a class="download-button" id="pdf-download" download><span>Download PDF</span><span>↓</span></a></article>
+              <article class="result-card cover-card"><div class="result-card-top"><div class="result-type webp-type">WEBP</div><span class="result-status">COVER</span></div><div class="cover-preview"><img id="cover-preview" alt="ตัวอย่าง cover จากหน้าแรกของ PDF" /></div><div class="cover-info"><div><h3 id="output-cover-name">cover.webp</h3><p id="cover-result-meta">—</p></div><a class="download-button secondary" id="cover-download" download><span>Download cover</span><span>↓</span></a></div></article>
             </div>
-
-            <div class="verification-card">
-              <div class="verification-heading"><div><p class="section-eyebrow">QUALITY CHECK</p><h3>ตรวจไฟล์ก่อนดาวน์โหลด</h3></div><span id="verification-summary">รอผลลัพธ์</span></div>
-              <div class="verification-grid">
-                <div class="verification-item" id="check-pages"><span class="check-mark">—</span><div><strong>จำนวนหน้า</strong><small>เท่ากับต้นฉบับ</small></div></div>
-                <div class="verification-item" id="check-metadata"><span class="check-mark">—</span><div><strong>Metadata</strong><small>ล้างข้อมูลแล้ว</small></div></div>
-                <div class="verification-item" id="check-render"><span class="check-mark">—</span><div><strong>หน้าแรก</strong><small>เรนเดอร์ตรงกัน</small></div></div>
-                <div class="verification-item" id="check-cover"><span class="check-mark">—</span><div><strong>WebP</strong><small>ไม่เกิน 500 KB</small></div></div>
-              </div>
-            </div>
-            <button class="reset-button" id="reset-button" type="button">เลือกไฟล์อื่น <span>↗</span></button>
+            <div class="verification-card"><div class="verification-heading"><div><p class="panel-eyebrow">QUALITY CHECK</p><h3>Everything looks good</h3></div><span id="verification-summary">รอผลลัพธ์</span></div><div class="verification-grid"><div class="verification-item" id="check-pages"><span class="check-mark">—</span><div><strong>จำนวนหน้า</strong><small>เท่ากับต้นฉบับ</small></div></div><div class="verification-item" id="check-metadata"><span class="check-mark">—</span><div><strong>Metadata</strong><small>ล้างข้อมูลแล้ว</small></div></div><div class="verification-item" id="check-render"><span class="check-mark">—</span><div><strong>หน้าแรก</strong><small>เรนเดอร์ตรงกัน</small></div></div><div class="verification-item" id="check-cover"><span class="check-mark">—</span><div><strong>WebP</strong><small>ไม่เกิน 500 KB</small></div></div></div></div>
+            <button class="reset-button" id="reset-button" type="button">Start with another file <span>↗</span></button>
           </section>
-        </section>
-      </main>
-
-      <footer><span>PDF PREP STUDIO</span><span>PRIVATE BY DESIGN</span><span>PDF IN · READY FILES OUT</span></footer>
+        </main>
+      </div>
+      <footer><span>PDF PREP STUDIO</span><span>LOCAL WORKSPACE</span><span>MADE FOR FOCUSED WORK</span></footer>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
