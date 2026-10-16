@@ -2,6 +2,8 @@ const $ = (selector) => document.querySelector(selector);
 const dropzone = $('#dropzone');
 const input = $('#file-input');
 const fileCard = $('#file-card');
+const inputPane = $('.input-pane');
+const actionRow = $('.action-row');
 const processButton = $('#process-button');
 const statusPanel = $('#status-panel');
 const errorMessage = $('#error-message');
@@ -44,7 +46,8 @@ async function setFile(file) {
   $('#file-size').textContent = formatBytes(file.size);
   fileCard.classList.remove('hidden');
   processButton.disabled = false;
-  dropzone.classList.add('hidden');
+  dropzone.classList.add('has-file');
+  dropzone.appendChild(fileCard);
   results.classList.remove('ready');
 }
 
@@ -54,7 +57,7 @@ input.addEventListener('change', (event) => { void setFile(event.target.files[0]
 ['dragenter', 'dragover'].forEach((eventName) => dropzone.addEventListener(eventName, (event) => { event.preventDefault(); dropzone.classList.add('dragover'); }));
 ['dragleave', 'drop'].forEach((eventName) => dropzone.addEventListener(eventName, (event) => { event.preventDefault(); dropzone.classList.remove('dragover'); }));
 dropzone.addEventListener('drop', (event) => { void setFile(event.dataTransfer.files[0]); });
-$('#remove-file').addEventListener('click', resetAll);
+$('#remove-file').addEventListener('click', (event) => { event.stopPropagation(); resetAll(); });
 $('#reset-button').addEventListener('click', resetAll);
 
 function resetAll() {
@@ -62,8 +65,9 @@ function resetAll() {
   outputUrls = [];
   selectedFile = null;
   input.value = '';
+  inputPane.insertBefore(fileCard, actionRow);
   fileCard.classList.add('hidden');
-  dropzone.classList.remove('hidden');
+  dropzone.classList.remove('has-file');
   processButton.disabled = true;
   results.classList.remove('ready');
   statusPanel.classList.add('hidden');

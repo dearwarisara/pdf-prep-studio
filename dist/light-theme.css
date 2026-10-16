@@ -292,3 +292,42 @@ body { font-size: 19px; }
   .action-caption { margin-top: 12px; font-size: 13px; }
   .verification-grid { grid-template-columns: 1fr; }
 }
+
+/* Keep the upload surface stable after a file is selected. */
+.dropzone.has-file {
+  justify-content: center;
+  align-items: stretch;
+}
+.dropzone.has-file .drop-topline,
+.dropzone.has-file .drop-center,
+.dropzone.has-file .drop-hint { display: none; }
+.dropzone.has-file .file-card {
+  width: 100%;
+  margin: 0;
+  background: #fff;
+  border-color: #dfe5ef;
+  box-shadow: 0 8px 20px rgba(45, 60, 90, .06);
+}
+
+/* Equal-height result cards keep both download actions on one baseline. */
+.results.ready .result-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.results.ready .result-card > .download-button { margin-top: auto; }
+.results.ready .cover-card .cover-info {
+  margin-top: auto;
+  align-items: flex-end;
+}
+.results.ready .cover-card .cover-info .download-button { margin-top: 0; }
+
+@media (min-width: 951px) {
+  .input-pane, .output-pane {
+    height: 680px;
+    min-height: 0;
+  }
+}
+@media (max-width: 950px) {
+  .input-pane, .output-pane { height: auto; }
+}
