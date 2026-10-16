@@ -254,3 +254,57 @@ footer { display: flex !important; align-items: center; justify-content: space-b
   .panel-meta { padding-top: 5px; }
   .verification-grid { grid-template-columns: 1fr; }
 }
+
+/* Desktop single-screen mode: the whole workspace fits inside the Mac window. */
+@media (min-width: 851px) {
+  html, body { height: 100%; }
+  body { overflow: hidden; }
+  .mac-window {
+    width: calc(100% - 20px);
+    height: calc(100vh - 20px);
+    min-height: 0;
+    margin: 10px auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .window-bar { height: 52px; flex: 0 0 52px; }
+  .app-layout {
+    height: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+  .main-content {
+    min-height: 0;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 13px 16px;
+    padding: 16px 28px 17px;
+  }
+  .main-toolbar { grid-column: 1 / -1; margin-bottom: 0; }
+  .welcome-row { grid-column: 1 / -1; margin-bottom: 0; min-height: 82px; }
+  .welcome-row h1 { margin-top: 7px; font-size: clamp(34px, 3.2vw, 48px); }
+  .welcome-copy { margin-top: 8px; font-size: 13px; }
+  .welcome-art { width: 118px; height: 76px; }
+  .orb-one { width: 60px; height: 60px; }
+  .orb-two { width: 42px; height: 42px; right: 3px; top: 24px; }
+  .orb-three { width: 17px; height: 17px; left: 10px; top: 8px; }
+  .art-paper { right: 27px; top: 17px; width: 39px; height: 49px; font-size: 9px; }
+  .input-pane { grid-column: 1; grid-row: 3; height: 100%; overflow: hidden; padding: 18px 20px 19px; }
+  .output-pane { grid-column: 2; grid-row: 3; height: 100%; min-height: 0; overflow: hidden; margin-top: 0; padding: 18px 20px 19px; }
+  .upload-intro { margin: 11px 0 9px; }
+  .dropzone { min-height: 0; height: 178px; }
+  .drop-hint { bottom: 12px; }
+  .action-row { margin-top: 10px; }
+  .results-head { padding: 13px 0 10px; }
+  .results-head h2 { font-size: 25px; }
+  .results-head p { margin-top: 5px; font-size: 12px; }
+  .output-empty { min-height: 0; height: 182px; }
+  .cover-preview { height: 72px; }
+  .verification-card { margin-top: 9px; padding: 10px; }
+  .verification-heading { padding-bottom: 7px; }
+  .verification-grid { padding-top: 7px; }
+  .reset-button { margin-top: 7px; }
+  footer { flex: 0 0 27px; height: 27px; }
+}
