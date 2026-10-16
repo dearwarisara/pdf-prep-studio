@@ -73,7 +73,10 @@ function configurePdfJs() {
 
 async function openPdf(data) {
   configurePdfJs();
-  return window.pdfjsLib.getDocument({ data: new Uint8Array(data), stopAtErrors: false, useSystemFonts: true }).promise;
+  // PDF.js may transfer/detach an ArrayBuffer while parsing it. Always pass a
+  // copy so later verification and pdf-lib metadata work still see the bytes.
+  const safeBytes = data instanceof ArrayBuffer ? new Uint8Array(data.slice(0)) : new Uint8Array(data).slice();
+  return window.pdfjsLib.getDocument({ data: safeBytes, stopAtErrors: false, useSystemFonts: true }).promise;
 }
 
 async function renderPage(data, pageNumber = 1, targetMax = 1400) {
