@@ -23,4 +23,4 @@ The repository includes a GitHub Actions workflow that deploys `dist/` to GitHub
 
 ## Privacy note
 
-PDF processing happens in the browser. The original file is never overwritten; downloads are created as new files with `_metadata-removed.pdf` and `_page-1.webp` suffixes.
+PDF processing happens in the browser. The original file is never overwritten; the cleaned PDF keeps the original filename and the generated cover downloads as `cover.webp`.

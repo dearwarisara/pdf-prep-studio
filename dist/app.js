@@ -10,8 +10,10 @@ const metadataKeys = ['Title', 'Author', 'Subject', 'Keywords', 'Creator', 'Prod
 let selectedFile = null;
 let outputUrls = [];
 
+$('#output-pdf-name').textContent = 'document.pdf';
+$('#output-cover-name').textContent = 'cover.webp';
+
 const formatBytes = (bytes) => { if (!bytes) return '0 B'; const units = ['B', 'KB', 'MB', 'GB']; const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1); return `${(bytes / Math.pow(1024, index)).toFixed(index ? 2 : 0)} ${units[index]}`; };
-const baseName = (name) => name.replace(/\.pdf$/i, '') || 'document';
 const setError = (message) => { errorMessage.textContent = message; errorMessage.classList.remove('hidden'); };
 const clearError = () => { errorMessage.textContent = ''; errorMessage.classList.add('hidden'); };
 const setStatus = (title, detail) => { $('#status-title').textContent = title; $('#status-detail').textContent = detail; };
@@ -181,15 +183,16 @@ processButton.addEventListener('click', async () => {
     const pdfUrl = URL.createObjectURL(pdfBlob);
     const coverUrl = URL.createObjectURL(cover);
     outputUrls = [pdfUrl, coverUrl];
-    const stem = baseName(selectedFile.name);
-    $('#output-pdf-name').textContent = `${stem}_metadata-removed.pdf`;
+    const pdfName = selectedFile.name || 'document.pdf';
+    const coverName = 'cover.webp';
+    $('#output-pdf-name').textContent = pdfName;
     $('#pdf-result-meta').textContent = `${formatBytes(pdfBlob.size)} · ไฟล์ใหม่ · ไม่บีบอัด`;
     $('#pdf-download').href = pdfUrl;
-    $('#pdf-download').download = `${stem}_metadata-removed.pdf`;
-    $('#output-cover-name').textContent = `${stem}_page-1.webp`;
+    $('#pdf-download').download = pdfName;
+    $('#output-cover-name').textContent = coverName;
     $('#cover-result-meta').textContent = `${formatBytes(cover.size)} · หน้าแรก · สูงสุด ${formatBytes(maxKB * 1024)}`;
     $('#cover-download').href = coverUrl;
-    $('#cover-download').download = `${stem}_page-1.webp`;
+    $('#cover-download').download = coverName;
     $('#cover-preview').src = coverUrl;
     updateCheck('check-pages', verification.pagesMatch);
     updateCheck('check-metadata', verification.metadataCleared);

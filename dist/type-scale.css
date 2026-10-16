@@ -31,7 +31,16 @@ body { font-size: 18px; }
 .reset-button { font-size: 12px; }
 footer { font-size: 10px; }
 
+/* Minimal header/footer: keep focus on the file workflow. */
+.topbar { position: relative; justify-content: center; }
+.brand { position: absolute; left: 0; }
+.topbar-right, footer { display: none !important; }
+.input-pane .pane-top .kicker { font-size: 0; gap: 0; }
+.input-pane .pane-top .kicker span { font-size: 10px; }
+
 @media (max-width: 560px) {
+  .topbar { justify-content: flex-start; }
+  .brand { position: static; }
   .input-pane h1 { font-size: 52px; }
   .results-head h2 { font-size: 48px; }
   .intro-copy { font-size: 14px; }
