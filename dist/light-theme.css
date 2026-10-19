@@ -308,3 +308,53 @@ footer { display: flex !important; align-items: center; justify-content: space-b
   .reset-button { margin-top: 7px; }
   footer { flex: 0 0 27px; height: 27px; }
 }
+
+/* Short laptop windows need a compact rhythm so panels never clip their content. */
+@media (min-width: 851px) and (max-height: 700px) {
+  .main-content {
+    gap: 8px 14px;
+    padding: 9px 24px 10px;
+  }
+  .main-toolbar { min-height: 18px; }
+  .welcome-row { min-height: 67px; }
+  .welcome-row h1 { margin-top: 4px; font-size: clamp(31px, 3.35vw, 43px); }
+  .welcome-copy { margin-top: 4px; font-size: 12px; line-height: 1.35; }
+  .welcome-art { width: 92px; height: 60px; }
+  .orb-one { width: 48px; height: 48px; }
+  .orb-two { width: 34px; height: 34px; right: 2px; top: 19px; }
+  .orb-three { width: 14px; height: 14px; left: 7px; top: 6px; }
+  .art-paper { right: 21px; top: 13px; width: 32px; height: 40px; font-size: 8px; }
+  .input-pane, .output-pane {
+    overflow: auto;
+    scrollbar-width: thin;
+    padding: 12px 16px 13px;
+  }
+  .panel-bar { padding-bottom: 9px; }
+  .panel-title h2 { font-size: 17px; }
+  .panel-icon { width: 27px; height: 27px; }
+  .upload-intro { margin: 8px 0 6px; gap: 12px; }
+  .upload-intro p { font-size: 13px; }
+  .upload-intro span { font-size: 10px; }
+  .dropzone { height: 140px; }
+  .drop-icon { width: 38px; height: 38px; border-radius: 11px; }
+  .drop-icon span { font-size: 22px; }
+  .drop-copy { font-size: 16px; }
+  .drop-copy span { font-size: 13px; }
+  .drop-hint { bottom: 10px; font-size: 10px; }
+  .action-row { margin-top: 7px; gap: 9px; }
+  .primary-button { padding: 10px 12px; font-size: 14px; }
+  .action-caption { flex-basis: 135px; font-size: 11px; }
+  .action-caption small { font-size: 10px; }
+  .results-head { padding: 8px 0 7px; }
+  .results-head h2 { font-size: 25px; }
+  .results-head p { margin-top: 4px; font-size: 12px; }
+  .output-empty { height: 145px; }
+  .empty-icon { width: 36px; height: 36px; margin-bottom: 6px; font-size: 19px; }
+  .output-empty strong { font-size: 14px; }
+  .output-empty p { margin-top: 4px; font-size: 11px; }
+  .verification-card { margin-top: 7px; padding: 8px; }
+  .verification-heading { padding-bottom: 6px; }
+  .verification-grid { padding-top: 6px; }
+  .verification-item { padding: 6px 5px; }
+  .reset-button { margin-top: 5px; }
+}
