@@ -358,3 +358,19 @@ footer { display: flex !important; align-items: center; justify-content: space-b
   .verification-item { padding: 6px 5px; }
   .reset-button { margin-top: 5px; }
 }
+
+/* Let the highlighted upload and empty-output areas fill the available panel height. */
+@media (min-width: 851px) {
+  .input-pane, .output-pane {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    scrollbar-width: thin;
+  }
+  .input-pane .dropzone,
+  .output-pane .output-empty {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 140px;
+  }
+}
