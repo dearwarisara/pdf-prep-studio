@@ -278,7 +278,7 @@ footer { display: flex !important; align-items: center; justify-content: space-b
     overflow: hidden;
     display: grid;
     grid-template-columns: minmax(320px, .72fr) minmax(0, 1.28fr);
-    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
     gap: 13px 16px;
     padding: 16px 28px 17px;
   }
@@ -291,8 +291,8 @@ footer { display: flex !important; align-items: center; justify-content: space-b
   .orb-two { width: 42px; height: 42px; right: 3px; top: 24px; }
   .orb-three { width: 17px; height: 17px; left: 10px; top: 8px; }
   .art-paper { right: 27px; top: 17px; width: 39px; height: 49px; font-size: 9px; }
-  .input-pane { grid-column: 1; grid-row: 3; height: 100%; overflow: hidden; padding: 18px 20px 19px; }
-  .output-pane { grid-column: 2; grid-row: 3; height: 100%; min-height: 0; overflow: hidden; margin-top: 0; padding: 18px 24px 19px; }
+  .input-pane { grid-column: 1; grid-row: 2; height: 100%; overflow: hidden; padding: 18px 20px 19px; }
+  .output-pane { grid-column: 2; grid-row: 2; height: 100%; min-height: 0; overflow: hidden; margin-top: 0; padding: 18px 24px 19px; }
   .upload-intro { margin: 11px 0 9px; }
   .dropzone { min-height: 0; height: 178px; }
   .drop-hint { bottom: 12px; }

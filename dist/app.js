@@ -14,7 +14,8 @@ let outputUrls = [];
 
 $('#output-pdf-name').textContent = 'document.pdf';
 $('#output-cover-name').textContent = 'cover.webp';
-$('#workspace-title').innerHTML = 'Polish your PDF<br /><i>in one click.</i>';
+const workspaceTitle = $('#workspace-title');
+if (workspaceTitle) workspaceTitle.innerHTML = 'Polish your PDF<br /><i>in one click.</i>';
 $('#results-title').innerHTML = 'Your clean files<br /><i>are ready.</i>';
 
 const formatBytes = (bytes) => { if (!bytes) return '0 B'; const units = ['B', 'KB', 'MB', 'GB']; const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1); return `${(bytes / Math.pow(1024, index)).toFixed(index ? 2 : 0)} ${units[index]}`; };
