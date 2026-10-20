@@ -65,7 +65,7 @@ body {
 .app-layout { display: grid; grid-template-columns: 226px minmax(0, 1fr); min-height: calc(100vh - 84px); }
 .sidebar { display: flex; flex-direction: column; padding: 25px 15px 18px; border-right: 1px solid #e4e4e9; background: #f5f5f7; }
 .sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 25px; }
-.sidebar-logo { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; background: linear-gradient(145deg, #7b61ff, #a78bfa); color: #fff; font: 700 14px "SF Pro Display", sans-serif; box-shadow: 0 5px 12px rgba(123,97,255,.22); }
+.sidebar-logo { width: 32px; height: 32px; display: block; flex: none; border-radius: 10px; background: url("./favicon.svg") center / cover no-repeat; box-shadow: 0 5px 12px rgba(0,122,255,.16); }
 .sidebar-brand strong, .sidebar-brand small { display: block; }
 .sidebar-brand strong { color: var(--text); font-size: 13px; }
 .sidebar-brand small { margin-top: 2px; color: var(--text-soft); font-size: 11px; }
