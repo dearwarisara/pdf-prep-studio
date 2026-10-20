@@ -164,6 +164,16 @@ async function stripMetadata(buffer) {
   return pdfDoc.save({ useObjectStreams: false, addDefaultPage: false, updateFieldAppearances: false, objectsPerTick: 50 });
 }
 
+async function optimizePdfLosslessly(buffer) {
+  if (!window.PDFLib) throw new Error('PDF metadata library is unavailable');
+  const { PDFDocument } = window.PDFLib;
+  const originalBytes = new Uint8Array(buffer);
+  const pdfDoc = await PDFDocument.load(originalBytes, { updateMetadata: false, ignoreEncryption: false, throwOnInvalidObject: false });
+  const optimizedBytes = await pdfDoc.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false, objectsPerTick: 50 });
+  const outputBytes = optimizedBytes.byteLength < originalBytes.byteLength ? optimizedBytes : originalBytes.slice();
+  return { bytes: outputBytes, reduced: outputBytes.byteLength < originalBytes.byteLength, strategy: 'lossless' };
+}
+
 async function compressPdf(buffer, onProgress) {
   if (!window.PDFLib) throw new Error('PDF metadata library is unavailable');
   const { PDFDocument } = window.PDFLib;
@@ -208,7 +218,7 @@ async function compressPdf(buffer, onProgress) {
   const optimizedBytes = await outputPdf.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false, objectsPerTick: 50 });
   const originalBytes = new Uint8Array(buffer);
   const outputBytes = optimizedBytes.byteLength < originalBytes.byteLength ? optimizedBytes : originalBytes.slice();
-  return { bytes: outputBytes, reduced: outputBytes.byteLength < originalBytes.byteLength };
+  return { bytes: outputBytes, reduced: outputBytes.byteLength < originalBytes.byteLength, strategy: 'jpeg' };
 }
 
 function hasXmpMetadata(metadata) {
@@ -244,14 +254,22 @@ async function readCompressionVerification(originalBytes, compressedBytes) {
   const pagesMatch = originalPdf.numPages === compressedPdf.numPages;
   const [originalCanvas, compressedCanvas] = await Promise.all([renderPage(originalBytes, 1, 1100), renderPage(compressedBytes, 1, 1100)]);
   let differentPixels = 0;
+  let totalDifference = 0;
   let renderMatch = originalCanvas.width === compressedCanvas.width && originalCanvas.height === compressedCanvas.height;
   if (renderMatch) {
     const originalPixels = originalCanvas.getContext('2d').getImageData(0, 0, originalCanvas.width, originalCanvas.height).data;
     const compressedPixels = compressedCanvas.getContext('2d').getImageData(0, 0, compressedCanvas.width, compressedCanvas.height).data;
     for (let index = 0; index < originalPixels.length; index += 4) {
-      if (Math.abs(originalPixels[index] - compressedPixels[index]) > 6 || Math.abs(originalPixels[index + 1] - compressedPixels[index + 1]) > 6 || Math.abs(originalPixels[index + 2] - compressedPixels[index + 2]) > 6) differentPixels += 1;
+      const redDifference = Math.abs(originalPixels[index] - compressedPixels[index]);
+      const greenDifference = Math.abs(originalPixels[index + 1] - compressedPixels[index + 1]);
+      const blueDifference = Math.abs(originalPixels[index + 2] - compressedPixels[index + 2]);
+      const pixelDifference = (redDifference + greenDifference + blueDifference) / 3;
+      totalDifference += pixelDifference;
+      if (redDifference > 6 || greenDifference > 6 || blueDifference > 6) differentPixels += 1;
     }
-    renderMatch = differentPixels / (originalCanvas.width * originalCanvas.height) <= 0.05;
+    const differenceRatio = differentPixels / (originalCanvas.width * originalCanvas.height);
+    const averageDifference = totalDifference / (originalCanvas.width * originalCanvas.height);
+    renderMatch = differenceRatio <= 0.01 && averageDifference <= 2.5;
   }
   const [originalMetadata, compressedMetadata] = await Promise.all([
     originalPdf.getMetadata().catch(() => ({ info: {} })),
@@ -332,17 +350,32 @@ compressButton.addEventListener('click', async () => {
     const buffer = await selectedFile.arrayBuffer();
     await openPdf(buffer);
     setStatus('กำลังบีบอัด PDF…', `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · Color ${compressionSettings.colorMode}`);
-    const compressed = await compressPdf(buffer, (pageNumber, totalPages) => setStatus(`กำลังบีบอัดหน้า ${pageNumber}/${totalPages}…`, `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · ไม่ปรับสี`));
+    let compressed = await compressPdf(buffer, (pageNumber, totalPages) => setStatus(`กำลังบีบอัดหน้า ${pageNumber}/${totalPages}…`, `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · ไม่ปรับสี`));
     setStatus('กำลังตรวจสอบคุณภาพ…', 'เปรียบเทียบจำนวนหน้า metadata และการเรนเดอร์หน้าแรก');
-    const verification = await readCompressionVerification(buffer, compressed.bytes);
+    let verification = await readCompressionVerification(buffer, compressed.bytes);
+    if (!verification.renderMatch || !verification.metadataPreserved) {
+      setStatus('กำลังรักษาสีต้นฉบับ…', 'ผลลัพธ์ JPEG ต่างจากต้นฉบับมากเกินไป จึงใช้ fallback แบบไม่ rasterize');
+      const losslessFallback = await optimizePdfLosslessly(buffer);
+      const fallbackVerification = await readCompressionVerification(buffer, losslessFallback.bytes);
+      if (fallbackVerification.renderMatch && fallbackVerification.metadataPreserved) {
+        compressed = losslessFallback;
+        verification = fallbackVerification;
+      } else {
+        compressed = { bytes: new Uint8Array(buffer.slice(0)), reduced: false, strategy: 'original' };
+        verification = await readCompressionVerification(buffer, compressed.bytes);
+      }
+    }
     const allPassed = verification.pagesMatch && verification.renderMatch && verification.metadataPreserved && verification.sizeNotLarger;
     configureResults('compress');
+    $('#check-render small').textContent = compressed.strategy === 'jpeg' ? 'ลดลงเล็กน้อย' : 'สีเดิม / ไม่ rasterize';
     const pdfBlob = new Blob([compressed.bytes], { type: 'application/pdf' });
     const pdfUrl = URL.createObjectURL(pdfBlob);
     outputUrls = [pdfUrl];
     const pdfName = selectedFile.name || 'document.pdf';
     $('#output-pdf-name').textContent = pdfName;
-    $('#pdf-result-meta').textContent = `${formatBytes(pdfBlob.size)} · ${compressed.reduced ? `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · Color ${compressionSettings.colorMode}` : 'ไฟล์เดิมเหมาะสมอยู่แล้ว'}`;
+    const compressionLabel = compressed.strategy === 'jpeg' ? `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · Color ${compressionSettings.colorMode}` : compressed.strategy === 'lossless' ? 'Color-safe fallback · lossless optimize' : 'ใช้ไฟล์เดิมเพื่อรักษาสี';
+    const outputLabel = compressed.strategy === 'original' ? 'ใช้ไฟล์เดิมเพื่อรักษาสี' : compressed.reduced ? compressionLabel : 'ไฟล์เดิมเหมาะสมอยู่แล้ว';
+    $('#pdf-result-meta').textContent = `${formatBytes(pdfBlob.size)} · ${outputLabel}`;
     $('#pdf-download').href = pdfUrl;
     $('#pdf-download').download = pdfName;
     updateCheck('check-pages', verification.pagesMatch);
