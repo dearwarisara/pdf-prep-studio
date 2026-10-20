@@ -12,7 +12,7 @@ const results = $('#results');
 const coverCard = $('.cover-card');
 const pdfResultStatus = $('#pdf-result-status');
 const metadataKeys = ['Title', 'Author', 'Subject', 'Keywords', 'Creator', 'Producer', 'CreationDate', 'ModDate'];
-const compressionSettings = { dpi: 144, imageQuality: 0.85, colorMode: 'No Change' };
+const compressionSettings = { dpi: 150, imageQuality: 0.85, colorMode: 'No Change', colorSpace: 'srgb' };
 let selectedFile = null;
 let outputUrls = [];
 
@@ -189,7 +189,9 @@ async function compressPdf(buffer, onProgress) {
     const canvas = document.createElement('canvas');
     canvas.width = Math.ceil(viewport.width);
     canvas.height = Math.ceil(viewport.height);
-    const context = canvas.getContext('2d', { alpha: false });
+    const context = canvas.getContext('2d', { alpha: false, colorSpace: compressionSettings.colorSpace });
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
     context.fillStyle = '#ffffff';
     context.fillRect(0, 0, canvas.width, canvas.height);
     await sourcePage.render({ canvasContext: context, viewport, background: 'white' }).promise;
