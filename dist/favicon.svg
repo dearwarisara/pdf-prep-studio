@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">PDF Prep Studio</title>
+  <desc id="desc">A white PDF document with a P monogram on a purple and blue gradient.</desc>
+  <defs>
+    <linearGradient id="background" x1="8" y1="7" x2="57" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B6CFF" />
+      <stop offset="1" stop-color="#007AFF" />
+    </linearGradient>
+    <linearGradient id="paper" x1="20" y1="12" x2="45" y2="53" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" />
+      <stop offset="1" stop-color="#F3F6FF" />
+    </linearGradient>
+    <filter id="shadow" x="10" y="7" width="45" height="52" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#243A8F" flood-opacity=".24" />
+    </filter>
+  </defs>
+  <rect width="64" height="64" rx="17" fill="url(#background)" />
+  <path d="M44 12H24a5 5 0 0 0-5 5v30a5 5 0 0 0 5 5h16a5 5 0 0 0 5-5V17a5 5 0 0 0-1.46-3.54L44 12Z" fill="url(#paper)" filter="url(#shadow)" />
+  <path d="M39 12v8h8" fill="none" stroke="#C9D8FF" stroke-width="2.2" stroke-linejoin="round" />
+  <path d="M27 25h7.2c4.1 0 6.3 2.1 6.3 5.4s-2.2 5.4-6.3 5.4H31v7h-4V25Zm4 3.2v4.4h2.8c1.8 0 2.7-.7 2.7-2.2s-.9-2.2-2.7-2.2H31Z" fill="#5D55D9" />
+  <circle cx="49" cy="14" r="4.5" fill="#FFB340" />
+  <path d="M49 10.8v6.4M45.8 14h6.4" stroke="#FFF8E7" stroke-width="1.4" stroke-linecap="round" />
+</svg>
