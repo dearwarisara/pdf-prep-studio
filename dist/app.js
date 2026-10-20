@@ -33,11 +33,11 @@ function configureResults(mode = 'clean') {
   $('#results-title').innerHTML = isCompress ? 'Your compressed PDF<br /><i>is ready.</i>' : 'Your clean files<br /><i>are ready.</i>';
   $('.output-state').textContent = isCompress ? 'PDF ONLY' : 'PDF + WEBP';
   pdfResultStatus.textContent = isCompress ? 'COMPRESSED' : 'CLEANED';
-  $('#action-hint').textContent = isCompress ? 'Lossless mode · ไม่ลดคุณภาพ' : 'WebP cover ไม่เกิน 500 KB';
+  $('#action-hint').textContent = isCompress ? 'ลดคุณภาพภาพเล็กน้อย · ประมวลผลในเครื่อง' : 'WebP cover ไม่เกิน 500 KB';
   $('#check-metadata strong').textContent = 'Metadata';
-  $('#check-metadata small').textContent = isCompress ? 'คงเดิม' : 'ล้างข้อมูลแล้ว';
+  $('#check-metadata small').textContent = isCompress ? 'พยายามคงข้อมูลเดิม' : 'ล้างข้อมูลแล้ว';
   $('#check-render strong').textContent = isCompress ? 'คุณภาพ' : 'หน้าแรก';
-  $('#check-render small').textContent = 'เรนเดอร์ตรงกัน';
+  $('#check-render small').textContent = isCompress ? 'ลดลงเล็กน้อย' : 'เรนเดอร์ตรงกัน';
   $('#check-cover strong').textContent = isCompress ? 'ขนาดไฟล์' : 'WebP';
   $('#check-cover small').textContent = isCompress ? 'เล็กลงหรือเท่าเดิม' : 'ไม่เกิน 500 KB';
 }
@@ -48,6 +48,7 @@ function explainError(error) {
   if (/worker|pdf renderer|pdf\.js|metadata library/.test(message)) return 'เครื่องมืออ่าน PDF โหลดไม่ครบ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่';
   if (/invalid|parse|malformed|unexpected|xref|cross-reference|eof|trailer/.test(message)) return 'โครงสร้าง PDF นี้ซับซ้อนหรือไม่สมบูรณ์ กรุณาเปิดไฟล์แล้วเลือก Save As PDF ใหม่';
   if (/webp export/.test(message)) return 'เบราว์เซอร์นี้ไม่รองรับการสร้าง WebP กรุณาใช้ Chrome หรือ Edge เวอร์ชันล่าสุด';
+  if (/jpeg export/.test(message)) return 'เบราว์เซอร์นี้ไม่รองรับการบีบอัดภาพ กรุณาใช้ Chrome หรือ Edge เวอร์ชันล่าสุด';
   return 'ไม่สามารถประมวลผล PDF นี้ได้ กรุณาลองเปิดแล้ว Save As PDF ใหม่';
 }
 
@@ -128,6 +129,10 @@ function canvasToBlob(canvas, quality) {
   return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('WebP export failed')), 'image/webp', quality));
 }
 
+function canvasToJpegBlob(canvas, quality) {
+  return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('JPEG export failed')), 'image/jpeg', quality));
+}
+
 async function createCover(fileBuffer, maxKB) {
   let canvas = await renderPage(fileBuffer, 1, 1400);
   let quality = 0.82;
@@ -158,12 +163,47 @@ async function stripMetadata(buffer) {
   return pdfDoc.save({ useObjectStreams: false, addDefaultPage: false, updateFieldAppearances: false, objectsPerTick: 50 });
 }
 
-async function compressPdf(buffer) {
+async function compressPdf(buffer, onProgress) {
   if (!window.PDFLib) throw new Error('PDF metadata library is unavailable');
   const { PDFDocument } = window.PDFLib;
+  const sourcePdf = await openPdf(buffer);
+  const outputPdf = await PDFDocument.create();
+  const sourceMetadata = await sourcePdf.getMetadata().catch(() => ({ info: {} }));
+  const info = sourceMetadata.info || {};
+  if (info.Title) outputPdf.setTitle(String(info.Title));
+  if (info.Author) outputPdf.setAuthor(String(info.Author));
+  if (info.Subject) outputPdf.setSubject(String(info.Subject));
+  if (info.Keywords) outputPdf.setKeywords(String(info.Keywords).split(',').map((keyword) => keyword.trim()).filter(Boolean));
+  if (info.Creator) outputPdf.setCreator(String(info.Creator));
+  if (info.Producer) outputPdf.setProducer(String(info.Producer));
+  if (info.CreationDate instanceof Date) outputPdf.setCreationDate(info.CreationDate);
+  if (info.ModDate instanceof Date) outputPdf.setModificationDate(info.ModDate);
+
+  for (let pageNumber = 1; pageNumber <= sourcePdf.numPages; pageNumber += 1) {
+    onProgress?.(pageNumber, sourcePdf.numPages);
+    const sourcePage = await sourcePdf.getPage(pageNumber);
+    const pageViewport = sourcePage.getViewport({ scale: 1 });
+    const renderScale = Math.min(1.5, 1400 / Math.max(pageViewport.width, pageViewport.height));
+    const viewport = sourcePage.getViewport({ scale: Math.max(0.75, renderScale) });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(viewport.width);
+    canvas.height = Math.ceil(viewport.height);
+    const context = canvas.getContext('2d', { alpha: false });
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    await sourcePage.render({ canvasContext: context, viewport, background: 'white' }).promise;
+    const jpeg = await canvasToJpegBlob(canvas, 0.9);
+    const jpegBytes = new Uint8Array(await jpeg.arrayBuffer());
+    const embeddedImage = await outputPdf.embedJpg(jpegBytes);
+    const outputPage = outputPdf.addPage([pageViewport.width, pageViewport.height]);
+    outputPage.drawImage(embeddedImage, { x: 0, y: 0, width: pageViewport.width, height: pageViewport.height });
+    sourcePage.cleanup();
+    canvas.width = 1;
+    canvas.height = 1;
+  }
+
+  const optimizedBytes = await outputPdf.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false, objectsPerTick: 50 });
   const originalBytes = new Uint8Array(buffer);
-  const pdfDoc = await PDFDocument.load(originalBytes, { updateMetadata: false, ignoreEncryption: false, throwOnInvalidObject: false });
-  const optimizedBytes = await pdfDoc.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false, objectsPerTick: 50 });
   const outputBytes = optimizedBytes.byteLength < originalBytes.byteLength ? optimizedBytes : originalBytes.slice();
   return { bytes: outputBytes, reduced: outputBytes.byteLength < originalBytes.byteLength };
 }
@@ -208,7 +248,7 @@ async function readCompressionVerification(originalBytes, compressedBytes) {
     for (let index = 0; index < originalPixels.length; index += 4) {
       if (Math.abs(originalPixels[index] - compressedPixels[index]) > 6 || Math.abs(originalPixels[index + 1] - compressedPixels[index + 1]) > 6 || Math.abs(originalPixels[index + 2] - compressedPixels[index + 2]) > 6) differentPixels += 1;
     }
-    renderMatch = differentPixels / (originalCanvas.width * originalCanvas.height) <= 0.001;
+    renderMatch = differentPixels / (originalCanvas.width * originalCanvas.height) <= 0.05;
   }
   const [originalMetadata, compressedMetadata] = await Promise.all([
     originalPdf.getMetadata().catch(() => ({ info: {} })),
@@ -288,8 +328,8 @@ compressButton.addEventListener('click', async () => {
   try {
     const buffer = await selectedFile.arrayBuffer();
     await openPdf(buffer);
-    setStatus('กำลังบีบอัด PDF…', 'ใช้ lossless mode โดยไม่ลดความละเอียดภาพหรือเนื้อหา');
-    const compressed = await compressPdf(buffer);
+    setStatus('กำลังบีบอัด PDF…', 'ลดคุณภาพภาพเล็กน้อยเพื่อให้ไฟล์เล็กลง');
+    const compressed = await compressPdf(buffer, (pageNumber, totalPages) => setStatus(`กำลังบีบอัดหน้า ${pageNumber}/${totalPages}…`, 'ลดคุณภาพภาพเล็กน้อยโดยคงขนาดหน้าเดิม'));
     setStatus('กำลังตรวจสอบคุณภาพ…', 'เปรียบเทียบจำนวนหน้า metadata และการเรนเดอร์หน้าแรก');
     const verification = await readCompressionVerification(buffer, compressed.bytes);
     const allPassed = verification.pagesMatch && verification.renderMatch && verification.metadataPreserved && verification.sizeNotLarger;
@@ -299,7 +339,7 @@ compressButton.addEventListener('click', async () => {
     outputUrls = [pdfUrl];
     const pdfName = selectedFile.name || 'document.pdf';
     $('#output-pdf-name').textContent = pdfName;
-    $('#pdf-result-meta').textContent = `${formatBytes(pdfBlob.size)} · ${compressed.reduced ? 'บีบอัดแบบ Preserve quality' : 'ไฟล์เดิมเหมาะสมอยู่แล้ว'}`;
+    $('#pdf-result-meta').textContent = `${formatBytes(pdfBlob.size)} · ${compressed.reduced ? 'บีบอัดภาพเล็กน้อย' : 'ไฟล์เดิมเหมาะสมอยู่แล้ว'}`;
     $('#pdf-download').href = pdfUrl;
     $('#pdf-download').download = pdfName;
     updateCheck('check-pages', verification.pagesMatch);
