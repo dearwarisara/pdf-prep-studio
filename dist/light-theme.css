@@ -424,3 +424,16 @@ footer { display: flex !important; align-items: center; justify-content: space-b
 .reset-button { color: #9389a4; }
 .reset-button:hover, .reset-button span { color: var(--blue); }
 footer { border-top-color: #e1daed; background: #f6f2fb; color: #a296b2; }
+
+.action-buttons { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 8px; }
+.action-buttons .primary-button { width: 100%; flex: none; }
+.quality-button { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; min-width: 0; padding: 10px 15px; border: 1px solid #d8ccef; border-radius: 10px; background: #f8f4ff; color: #6849bf; box-shadow: 0 4px 10px rgba(118,87,217,.08); cursor: pointer; text-align: left; font-size: 14px; font-weight: 650; transition: .15s ease; }
+.quality-button > span:first-child { display: flex; flex-direction: column; gap: 1px; }
+.quality-button strong { font-size: 14px; }
+.quality-button small { color: #9587b6; font-size: 10px; font-weight: 500; }
+.quality-button:hover:not(:disabled) { border-color: #b9a6e8; background: #f0e8ff; transform: translateY(-1px); }
+.quality-button:disabled { border-color: #e5def2; background: #faf8ff; color: #b4a8ca; box-shadow: none; cursor: not-allowed; }
+.results.compress-mode .result-grid { grid-template-columns: minmax(0, 1fr); }
+.results.compress-mode .pdf-type { background: var(--purple-soft); color: #6849bf; }
+.results.compress-mode .download-button { background: var(--purple); }
+.results.compress-mode .download-button:hover { background: #8462d7; }

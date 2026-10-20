@@ -5,9 +5,12 @@ const fileCard = $('#file-card');
 const inputPane = $('.input-pane');
 const actionRow = $('.action-row');
 const processButton = $('#process-button');
+const compressButton = $('#compress-button');
 const statusPanel = $('#status-panel');
 const errorMessage = $('#error-message');
 const results = $('#results');
+const coverCard = $('.cover-card');
+const pdfResultStatus = $('#pdf-result-status');
 const metadataKeys = ['Title', 'Author', 'Subject', 'Keywords', 'Creator', 'Producer', 'CreationDate', 'ModDate'];
 let selectedFile = null;
 let outputUrls = [];
@@ -22,6 +25,22 @@ const formatBytes = (bytes) => { if (!bytes) return '0 B'; const units = ['B', '
 const setError = (message) => { errorMessage.textContent = message; errorMessage.classList.remove('hidden'); };
 const clearError = () => { errorMessage.textContent = ''; errorMessage.classList.add('hidden'); };
 const setStatus = (title, detail) => { $('#status-title').textContent = title; $('#status-detail').textContent = detail; };
+
+function configureResults(mode = 'clean') {
+  const isCompress = mode === 'compress';
+  results.classList.toggle('compress-mode', isCompress);
+  coverCard.classList.toggle('hidden', isCompress);
+  $('#results-title').innerHTML = isCompress ? 'Your compressed PDF<br /><i>is ready.</i>' : 'Your clean files<br /><i>are ready.</i>';
+  $('.output-state').textContent = isCompress ? 'PDF ONLY' : 'PDF + WEBP';
+  pdfResultStatus.textContent = isCompress ? 'COMPRESSED' : 'CLEANED';
+  $('#action-hint').textContent = isCompress ? 'Lossless mode · ไม่ลดคุณภาพ' : 'WebP cover ไม่เกิน 500 KB';
+  $('#check-metadata strong').textContent = 'Metadata';
+  $('#check-metadata small').textContent = isCompress ? 'คงเดิม' : 'ล้างข้อมูลแล้ว';
+  $('#check-render strong').textContent = isCompress ? 'คุณภาพ' : 'หน้าแรก';
+  $('#check-render small').textContent = 'เรนเดอร์ตรงกัน';
+  $('#check-cover strong').textContent = isCompress ? 'ขนาดไฟล์' : 'WebP';
+  $('#check-cover small').textContent = isCompress ? 'เล็กลงหรือเท่าเดิม' : 'ไม่เกิน 500 KB';
+}
 
 function explainError(error) {
   const message = String(error?.message || error || '').toLowerCase();
@@ -47,9 +66,11 @@ async function setFile(file) {
   $('#file-size').textContent = formatBytes(file.size);
   fileCard.classList.remove('hidden');
   processButton.disabled = false;
+  compressButton.disabled = false;
   dropzone.classList.add('has-file');
   dropzone.appendChild(fileCard);
   results.classList.remove('ready');
+  configureResults('clean');
 }
 
 dropzone.addEventListener('click', () => input.click());
@@ -70,7 +91,9 @@ function resetAll() {
   fileCard.classList.add('hidden');
   dropzone.classList.remove('has-file');
   processButton.disabled = true;
+  compressButton.disabled = true;
   results.classList.remove('ready');
+  configureResults('clean');
   statusPanel.classList.add('hidden');
   clearError();
 }
@@ -135,6 +158,16 @@ async function stripMetadata(buffer) {
   return pdfDoc.save({ useObjectStreams: false, addDefaultPage: false, updateFieldAppearances: false, objectsPerTick: 50 });
 }
 
+async function compressPdf(buffer) {
+  if (!window.PDFLib) throw new Error('PDF metadata library is unavailable');
+  const { PDFDocument } = window.PDFLib;
+  const originalBytes = new Uint8Array(buffer);
+  const pdfDoc = await PDFDocument.load(originalBytes, { updateMetadata: false, ignoreEncryption: false, throwOnInvalidObject: false });
+  const optimizedBytes = await pdfDoc.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false, objectsPerTick: 50 });
+  const outputBytes = optimizedBytes.byteLength < originalBytes.byteLength ? optimizedBytes : originalBytes.slice();
+  return { bytes: outputBytes, reduced: outputBytes.byteLength < originalBytes.byteLength };
+}
+
 function hasXmpMetadata(metadata) {
   if (!metadata?.metadata) return false;
   if (typeof metadata.metadata.getAll === 'function') return Object.keys(metadata.metadata.getAll()).length > 0;
@@ -162,6 +195,29 @@ async function readVerification(originalBytes, cleanedBytes, coverBlob) {
   return { pagesMatch, renderMatch, metadataCleared, coverWithinLimit: Boolean(coverBlob), differentPixels };
 }
 
+async function readCompressionVerification(originalBytes, compressedBytes) {
+  const originalPdf = await openPdf(originalBytes);
+  const compressedPdf = await openPdf(compressedBytes);
+  const pagesMatch = originalPdf.numPages === compressedPdf.numPages;
+  const [originalCanvas, compressedCanvas] = await Promise.all([renderPage(originalBytes, 1, 1100), renderPage(compressedBytes, 1, 1100)]);
+  let differentPixels = 0;
+  let renderMatch = originalCanvas.width === compressedCanvas.width && originalCanvas.height === compressedCanvas.height;
+  if (renderMatch) {
+    const originalPixels = originalCanvas.getContext('2d').getImageData(0, 0, originalCanvas.width, originalCanvas.height).data;
+    const compressedPixels = compressedCanvas.getContext('2d').getImageData(0, 0, compressedCanvas.width, compressedCanvas.height).data;
+    for (let index = 0; index < originalPixels.length; index += 4) {
+      if (Math.abs(originalPixels[index] - compressedPixels[index]) > 6 || Math.abs(originalPixels[index + 1] - compressedPixels[index + 1]) > 6 || Math.abs(originalPixels[index + 2] - compressedPixels[index + 2]) > 6) differentPixels += 1;
+    }
+    renderMatch = differentPixels / (originalCanvas.width * originalCanvas.height) <= 0.001;
+  }
+  const [originalMetadata, compressedMetadata] = await Promise.all([
+    originalPdf.getMetadata().catch(() => ({ info: {} })),
+    compressedPdf.getMetadata().catch(() => ({ info: {} }))
+  ]);
+  const metadataPreserved = metadataKeys.every((key) => String(originalMetadata.info?.[key] ?? '') === String(compressedMetadata.info?.[key] ?? ''));
+  return { pagesMatch, renderMatch, metadataPreserved, sizeNotLarger: compressedBytes.byteLength <= originalBytes.byteLength, differentPixels };
+}
+
 function updateCheck(id, passed) {
   const item = $(`#${id}`);
   item.classList.toggle('check-pass', passed);
@@ -173,6 +229,7 @@ processButton.addEventListener('click', async () => {
   if (!selectedFile) return;
   clearError();
   processButton.disabled = true;
+  compressButton.disabled = true;
   statusPanel.classList.remove('hidden');
   setStatus('กำลังอ่านไฟล์…', 'ตรวจสอบโครงสร้าง PDF และจำนวนหน้า');
   try {
@@ -186,6 +243,7 @@ processButton.addEventListener('click', async () => {
     setStatus('กำลังตรวจสอบผลลัพธ์…', 'เปรียบเทียบจำนวนหน้า metadata และการเรนเดอร์หน้าแรก');
     const verification = await readVerification(buffer, cleanedBytes, cover);
     const allPassed = verification.pagesMatch && verification.renderMatch && verification.metadataCleared && verification.coverWithinLimit && cover.size <= maxKB * 1024;
+    configureResults('clean');
     const pdfBlob = new Blob([cleanedBytes], { type: 'application/pdf' });
     const pdfUrl = URL.createObjectURL(pdfBlob);
     const coverUrl = URL.createObjectURL(cover);
@@ -214,7 +272,51 @@ processButton.addEventListener('click', async () => {
   } catch (error) {
     statusPanel.classList.add('hidden');
     processButton.disabled = false;
+    compressButton.disabled = false;
     setError(explainError(error));
     console.error('PDF Prep Studio processing error:', error);
+  }
+});
+
+compressButton.addEventListener('click', async () => {
+  if (!selectedFile) return;
+  clearError();
+  processButton.disabled = true;
+  compressButton.disabled = true;
+  statusPanel.classList.remove('hidden');
+  setStatus('กำลังอ่านไฟล์…', 'ตรวจสอบโครงสร้าง PDF และจำนวนหน้า');
+  try {
+    const buffer = await selectedFile.arrayBuffer();
+    await openPdf(buffer);
+    setStatus('กำลังบีบอัด PDF…', 'ใช้ lossless mode โดยไม่ลดความละเอียดภาพหรือเนื้อหา');
+    const compressed = await compressPdf(buffer);
+    setStatus('กำลังตรวจสอบคุณภาพ…', 'เปรียบเทียบจำนวนหน้า metadata และการเรนเดอร์หน้าแรก');
+    const verification = await readCompressionVerification(buffer, compressed.bytes);
+    const allPassed = verification.pagesMatch && verification.renderMatch && verification.metadataPreserved && verification.sizeNotLarger;
+    configureResults('compress');
+    const pdfBlob = new Blob([compressed.bytes], { type: 'application/pdf' });
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    outputUrls = [pdfUrl];
+    const pdfName = selectedFile.name || 'document.pdf';
+    $('#output-pdf-name').textContent = pdfName;
+    $('#pdf-result-meta').textContent = `${formatBytes(pdfBlob.size)} · ${compressed.reduced ? 'บีบอัดแบบ Preserve quality' : 'ไฟล์เดิมเหมาะสมอยู่แล้ว'}`;
+    $('#pdf-download').href = pdfUrl;
+    $('#pdf-download').download = pdfName;
+    updateCheck('check-pages', verification.pagesMatch);
+    updateCheck('check-metadata', verification.metadataPreserved);
+    updateCheck('check-render', verification.renderMatch);
+    updateCheck('check-cover', verification.sizeNotLarger);
+    $('#verification-summary').textContent = allPassed ? 'ผ่าน 4/4 รายการ' : 'มีรายการที่ต้องตรวจซ้ำ';
+    $('#overall-badge').textContent = allPassed ? '✓ ตรวจสอบแล้ว' : '! ตรวจสอบซ้ำ';
+    $('#overall-badge').classList.toggle('warning-badge', !allPassed);
+    statusPanel.classList.add('hidden');
+    results.classList.remove('hidden');
+    results.classList.add('ready');
+  } catch (error) {
+    statusPanel.classList.add('hidden');
+    processButton.disabled = false;
+    compressButton.disabled = false;
+    setError(explainError(error));
+    console.error('PDF Prep Studio compression error:', error);
   }
 });

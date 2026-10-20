@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="PDF Prep Studio — เตรียม PDF ลบ Metadata และสร้าง Cover ในหน้าต่างเดียว" />
+    <meta name="description" content="PDF Prep Studio — ลบ Metadata สร้าง Cover และบีบอัด PDF แบบรักษาคุณภาพในเครื่อง" />
     <title>PDF Prep Studio</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -45,7 +45,7 @@
               <div class="drop-hint">ไฟล์จะถูกประมวลผลในเบราว์เซอร์ของคุณ</div>
             </div>
             <div class="file-card hidden" id="file-card"><div class="file-icon">PDF</div><div class="file-details"><strong id="file-name">document.pdf</strong><span id="file-size">0 KB</span></div><span class="file-ready">READY</span><button id="remove-file" class="icon-button" type="button" aria-label="นำไฟล์ออก">×</button></div>
-            <div class="action-row"><button class="primary-button" id="process-button" type="button" disabled><span id="process-label">Clean PDF & create cover</span><span class="button-arrow">↗</span></button><p class="action-caption"><span class="lock-icon">⌁</span><span>Private on this device</span><small>WebP cover ไม่เกิน 500 KB</small></p></div>
+            <div class="action-row"><div class="action-buttons"><button class="primary-button" id="process-button" type="button" disabled><span id="process-label">Clean PDF & create cover</span><span class="button-arrow">↗</span></button><button class="quality-button" id="compress-button" type="button" disabled aria-label="Compress PDF — Preserve quality"><span><strong>Compress PDF</strong><small>— Preserve quality</small></span><span class="button-arrow">↗</span></button></div><p class="action-caption"><span class="lock-icon">⌁</span><span>Private on this device</span><small id="action-hint">WebP cover ไม่เกิน 500 KB</small></p></div>
             <div class="status-panel hidden" id="status-panel" aria-live="polite"><div class="status-spinner"></div><div><strong id="status-title">กำลังเตรียมไฟล์…</strong><span id="status-detail">กำลังอ่านโครงสร้าง PDF</span></div></div>
             <p class="error-message hidden" id="error-message" role="alert"></p>
           </section>
@@ -55,7 +55,7 @@
             <div class="results-head"><div><h2 id="results-title">Your clean files<br /><i>are ready.</i></h2><p>ไฟล์ผลลัพธ์ของคุณจะแสดงที่นี่</p></div><span class="output-state">PDF + WEBP</span></div>
             <div class="output-empty" id="output-empty"><div class="empty-icon">↓</div><strong>Nothing here yet</strong><p>อัปโหลด PDF ด้านบนเพื่อเริ่มต้น</p></div>
             <div class="result-grid">
-              <article class="result-card"><div class="result-card-top"><div class="result-type pdf-type">PDF</div><span class="result-status">CLEANED</span></div><div class="result-card-title"><h3 id="output-pdf-name">document.pdf</h3><span class="result-check">✓</span></div><p id="pdf-result-meta">—</p><a class="download-button" id="pdf-download" download><span>Download PDF</span><span>↓</span></a></article>
+              <article class="result-card"><div class="result-card-top"><div class="result-type pdf-type">PDF</div><span class="result-status" id="pdf-result-status">CLEANED</span></div><div class="result-card-title"><h3 id="output-pdf-name">document.pdf</h3><span class="result-check">✓</span></div><p id="pdf-result-meta">—</p><a class="download-button" id="pdf-download" download><span>Download PDF</span><span>↓</span></a></article>
               <article class="result-card cover-card"><div class="result-card-top"><div class="result-type webp-type">WEBP</div><span class="result-status">COVER</span></div><div class="cover-preview"><img id="cover-preview" alt="ตัวอย่าง cover จากหน้าแรกของ PDF" /></div><div class="cover-info"><div><h3 id="output-cover-name">cover.webp</h3><p id="cover-result-meta">—</p></div><a class="download-button secondary" id="cover-download" download><span>Download cover</span><span>↓</span></a></div></article>
             </div>
             <div class="verification-card"><div class="verification-heading"><div><p class="panel-eyebrow">QUALITY CHECK</p><h3>Everything looks good</h3></div><span id="verification-summary">รอผลลัพธ์</span></div><div class="verification-grid"><div class="verification-item" id="check-pages"><span class="check-mark">—</span><div><strong>จำนวนหน้า</strong><small>เท่ากับต้นฉบับ</small></div></div><div class="verification-item" id="check-metadata"><span class="check-mark">—</span><div><strong>Metadata</strong><small>ล้างข้อมูลแล้ว</small></div></div><div class="verification-item" id="check-render"><span class="check-mark">—</span><div><strong>หน้าแรก</strong><small>เรนเดอร์ตรงกัน</small></div></div><div class="verification-item" id="check-cover"><span class="check-mark">—</span><div><strong>WebP</strong><small>ไม่เกิน 500 KB</small></div></div></div></div>
