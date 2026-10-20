@@ -1,22 +1,22 @@
 /* PDF Prep Studio — a bright macOS-inspired workspace */
 :root {
-  --system-bg: #e9eaef;
-  --window: #fbfbfd;
+  --system-bg: #ebe6f8;
+  --window: #fcfbff;
   --surface: #ffffff;
-  --surface-soft: #f5f5f8;
-  --text: #1d1d1f;
-  --text-soft: #6e6e73;
-  --line: #dedee5;
-  --blue: #007aff;
-  --blue-soft: #e9f3ff;
-  --purple: #7b61ff;
-  --purple-soft: #f0edff;
+  --surface-soft: #f6f2ff;
+  --text: #28213f;
+  --text-soft: #746b88;
+  --line: #ded6ed;
+  --blue: #7657d9;
+  --blue-soft: #eee9ff;
+  --purple: #9b78e8;
+  --purple-soft: #f2edff;
   --green: #34c759;
   --green-soft: #eaf9ed;
   --orange: #ff9f0a;
   --orange-soft: #fff4df;
   --red: #ff5f57;
-  --shadow: 0 24px 70px rgba(37, 39, 55, .16);
+  --shadow: 0 24px 70px rgba(92, 67, 145, .18);
 }
 
 html { min-height: 100%; background: var(--system-bg); }
@@ -374,3 +374,53 @@ footer { display: flex !important; align-items: center; justify-content: space-b
     min-height: 140px;
   }
 }
+
+/* Lavender theme accents and surfaces. */
+.window-bar { border-bottom-color: #e5def1; background: rgba(252,250,255,.94); }
+.window-title strong { color: #403653; }
+.window-title span, .window-actions { color: #978da8; }
+.window-chip { border-color: #e2dcef; background: #fff; }
+.window-menu { color: #a59ab9; }
+.sidebar { border-right-color: #e1daed; background: #f6f2fb; }
+.sidebar-logo { box-shadow: 0 5px 12px rgba(118,87,217,.18); }
+.sidebar-label, .sidebar-version { color: #a296b2; }
+.sidebar-version span { color: #b4a9c5; }
+.nav-item.active { color: var(--blue); box-shadow: 0 2px 8px rgba(113,87,168,.10); }
+.muted-icon { background: #eeeaf5; color: #9388a5; }
+.nav-copy small { color: #9d93ad; }
+.nav-arrow { color: #b4a9c0; }
+.sidebar-note { border-color: #e2dcef; background: rgba(255,255,255,.72); }
+.sidebar-note strong { color: #554d66; }
+.sidebar-note p { color: #998fa8; }
+.main-content { background: #fcfbff; }
+.breadcrumb { color: #a296b2; }
+.breadcrumb b { color: #c6bdd4; }
+.breadcrumb strong { color: #756b88; }
+.toolbar-shortcut { color: #9389a4; }
+.toolbar-shortcut span { border-color: #ddd5eb; background: #f5f1fb; }
+.welcome-kicker, .panel-eyebrow, .panel-meta, .drop-hint, .icon-button, .result-status { color: #a296b2; }
+.welcome-row h1 i, .results-head h2 i { color: var(--blue); }
+.orb-one { background: #e4ddff; }
+.orb-two { background: #f0e5ff; }
+.orb-three { background: #ffe6da; }
+.art-paper { border-color: rgba(118,87,217,.25); color: var(--blue); box-shadow: 0 8px 15px rgba(118,87,217,.13); }
+.input-pane, .output-pane { border-color: #e2dbef; box-shadow: 0 8px 25px rgba(96,72,140,.07); }
+.panel-bar { border-bottom-color: #eee9f4; }
+.dropzone { border-color: #cbc0e6; background: #fcfaff; }
+.dropzone:hover, .dropzone.dragover { border-color: var(--blue); background: #f5f1ff; box-shadow: 0 0 0 4px rgba(118,87,217,.09); }
+.drop-copy u { color: var(--blue); }
+.file-card { border-color: #e4dff0; background: #faf8ff; }
+.dropzone.has-file .file-card { background: #fff; box-shadow: 0 8px 18px rgba(118,87,217,.09); }
+.primary-button { box-shadow: 0 5px 12px rgba(118,87,217,.22); }
+.primary-button:hover:not(:disabled) { background: #6849cb; }
+.primary-button:disabled { background: #d7cef1; }
+.action-caption small { color: #a296b2; }
+.output-empty { border-color: #ddd5eb; background: #fdfbff; }
+.result-card { border-color: #e6e0ef; }
+.download-button:hover { background: #6849cb; }
+.download-button.secondary:hover { background: #8462d7; }
+.cover-preview { background: #f4f0fa; }
+.output-state, .success-badge { background: var(--surface-soft); color: #8e84a0; }
+.reset-button { color: #9389a4; }
+.reset-button:hover, .reset-button span { color: var(--blue); }
+footer { border-top-color: #e1daed; background: #f6f2fb; color: #a296b2; }
