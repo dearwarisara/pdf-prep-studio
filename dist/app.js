@@ -12,6 +12,7 @@ const results = $('#results');
 const coverCard = $('.cover-card');
 const pdfResultStatus = $('#pdf-result-status');
 const metadataKeys = ['Title', 'Author', 'Subject', 'Keywords', 'Creator', 'Producer', 'CreationDate', 'ModDate'];
+const compressionSettings = { dpi: 144, imageQuality: 0.85, colorMode: 'No Change' };
 let selectedFile = null;
 let outputUrls = [];
 
@@ -33,7 +34,7 @@ function configureResults(mode = 'clean') {
   $('#results-title').innerHTML = isCompress ? 'Your compressed PDF<br /><i>is ready.</i>' : 'Your clean files<br /><i>are ready.</i>';
   $('.output-state').textContent = isCompress ? 'PDF ONLY' : 'PDF + WEBP';
   pdfResultStatus.textContent = isCompress ? 'COMPRESSED' : 'CLEANED';
-  $('#action-hint').textContent = isCompress ? 'ลดคุณภาพภาพเล็กน้อย · ประมวลผลในเครื่อง' : 'WebP cover ไม่เกิน 500 KB';
+  $('#action-hint').textContent = isCompress ? `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · Color ${compressionSettings.colorMode}` : 'WebP cover ไม่เกิน 500 KB';
   $('#check-metadata strong').textContent = 'Metadata';
   $('#check-metadata small').textContent = isCompress ? 'พยายามคงข้อมูลเดิม' : 'ล้างข้อมูลแล้ว';
   $('#check-render strong').textContent = isCompress ? 'คุณภาพ' : 'หน้าแรก';
@@ -183,8 +184,8 @@ async function compressPdf(buffer, onProgress) {
     onProgress?.(pageNumber, sourcePdf.numPages);
     const sourcePage = await sourcePdf.getPage(pageNumber);
     const pageViewport = sourcePage.getViewport({ scale: 1 });
-    const renderScale = Math.min(1.5, 1400 / Math.max(pageViewport.width, pageViewport.height));
-    const viewport = sourcePage.getViewport({ scale: Math.max(0.75, renderScale) });
+    const renderScale = compressionSettings.dpi / 72;
+    const viewport = sourcePage.getViewport({ scale: renderScale });
     const canvas = document.createElement('canvas');
     canvas.width = Math.ceil(viewport.width);
     canvas.height = Math.ceil(viewport.height);
@@ -192,7 +193,7 @@ async function compressPdf(buffer, onProgress) {
     context.fillStyle = '#ffffff';
     context.fillRect(0, 0, canvas.width, canvas.height);
     await sourcePage.render({ canvasContext: context, viewport, background: 'white' }).promise;
-    const jpeg = await canvasToJpegBlob(canvas, 0.9);
+    const jpeg = await canvasToJpegBlob(canvas, compressionSettings.imageQuality);
     const jpegBytes = new Uint8Array(await jpeg.arrayBuffer());
     const embeddedImage = await outputPdf.embedJpg(jpegBytes);
     const outputPage = outputPdf.addPage([pageViewport.width, pageViewport.height]);
@@ -328,8 +329,8 @@ compressButton.addEventListener('click', async () => {
   try {
     const buffer = await selectedFile.arrayBuffer();
     await openPdf(buffer);
-    setStatus('กำลังบีบอัด PDF…', 'ลดคุณภาพภาพเล็กน้อยเพื่อให้ไฟล์เล็กลง');
-    const compressed = await compressPdf(buffer, (pageNumber, totalPages) => setStatus(`กำลังบีบอัดหน้า ${pageNumber}/${totalPages}…`, 'ลดคุณภาพภาพเล็กน้อยโดยคงขนาดหน้าเดิม'));
+    setStatus('กำลังบีบอัด PDF…', `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · Color ${compressionSettings.colorMode}`);
+    const compressed = await compressPdf(buffer, (pageNumber, totalPages) => setStatus(`กำลังบีบอัดหน้า ${pageNumber}/${totalPages}…`, `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · ไม่ปรับสี`));
     setStatus('กำลังตรวจสอบคุณภาพ…', 'เปรียบเทียบจำนวนหน้า metadata และการเรนเดอร์หน้าแรก');
     const verification = await readCompressionVerification(buffer, compressed.bytes);
     const allPassed = verification.pagesMatch && verification.renderMatch && verification.metadataPreserved && verification.sizeNotLarger;
@@ -339,7 +340,7 @@ compressButton.addEventListener('click', async () => {
     outputUrls = [pdfUrl];
     const pdfName = selectedFile.name || 'document.pdf';
     $('#output-pdf-name').textContent = pdfName;
-    $('#pdf-result-meta').textContent = `${formatBytes(pdfBlob.size)} · ${compressed.reduced ? 'บีบอัดภาพเล็กน้อย' : 'ไฟล์เดิมเหมาะสมอยู่แล้ว'}`;
+    $('#pdf-result-meta').textContent = `${formatBytes(pdfBlob.size)} · ${compressed.reduced ? `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · Color ${compressionSettings.colorMode}` : 'ไฟล์เดิมเหมาะสมอยู่แล้ว'}`;
     $('#pdf-download').href = pdfUrl;
     $('#pdf-download').download = pdfName;
     updateCheck('check-pages', verification.pagesMatch);
