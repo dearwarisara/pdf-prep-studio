@@ -290,7 +290,6 @@ processButton.addEventListener('click', async () => {
   if (!selectedFile) return;
   clearError();
   processButton.disabled = true;
-  compressButton.disabled = true;
   statusPanel.classList.remove('hidden');
   setStatus('กำลังอ่านไฟล์…', 'ตรวจสอบโครงสร้าง PDF และจำนวนหน้า');
   try {
@@ -327,6 +326,8 @@ processButton.addEventListener('click', async () => {
     $('#verification-summary').textContent = allPassed ? 'ผ่าน 4/4 รายการ' : 'มีรายการที่ต้องตรวจซ้ำ';
     $('#overall-badge').textContent = allPassed ? '✓ ตรวจสอบแล้ว' : '! ตรวจสอบซ้ำ';
     $('#overall-badge').classList.toggle('warning-badge', !allPassed);
+    processButton.disabled = false;
+    compressButton.disabled = false;
     statusPanel.classList.add('hidden');
     results.classList.remove('hidden');
     results.classList.add('ready');
@@ -342,7 +343,6 @@ processButton.addEventListener('click', async () => {
 compressButton.addEventListener('click', async () => {
   if (!selectedFile) return;
   clearError();
-  processButton.disabled = true;
   compressButton.disabled = true;
   statusPanel.classList.remove('hidden');
   setStatus('กำลังอ่านไฟล์…', 'ตรวจสอบโครงสร้าง PDF และจำนวนหน้า');
@@ -385,6 +385,8 @@ compressButton.addEventListener('click', async () => {
     $('#verification-summary').textContent = allPassed ? 'ผ่าน 4/4 รายการ' : 'มีรายการที่ต้องตรวจซ้ำ';
     $('#overall-badge').textContent = allPassed ? '✓ ตรวจสอบแล้ว' : '! ตรวจสอบซ้ำ';
     $('#overall-badge').classList.toggle('warning-badge', !allPassed);
+    processButton.disabled = false;
+    compressButton.disabled = false;
     statusPanel.classList.add('hidden');
     results.classList.remove('hidden');
     results.classList.add('ready');
