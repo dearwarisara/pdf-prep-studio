@@ -318,14 +318,15 @@ function fileStem(name) {
 
 function renderResultCards(mode, outputs) {
   const isCompress = mode === 'compress';
-  resultGrid.innerHTML = outputs.map((output) => {
+  resultGrid.innerHTML = outputs.map((output, index) => {
     const pdfName = escapeHtml(output.pdfName);
     const pdfMeta = escapeHtml(output.pdfMeta);
     const pdfCard = `<article class="result-card"><div class="result-card-top"><div class="result-type pdf-type">PDF</div><span class="result-status">${isCompress ? 'COMPRESSED' : 'CLEANED'}</span></div><div class="result-card-title"><h3 title="${pdfName}">${pdfName}</h3><span class="result-check">✓</span></div><p>${pdfMeta}</p><a class="download-button" href="${output.pdfUrl}" download="${pdfName}"><span>Download PDF</span><span>↓</span></a></article>`;
-    if (isCompress) return pdfCard;
+    if (isCompress) return `<section class="result-file-group"><div class="result-file-heading"><span class="result-file-index">FILE ${String(index + 1).padStart(2, '0')}</span><strong title="${pdfName}">${pdfName}</strong></div><div class="result-file-cards">${pdfCard}</div></section>`;
     const coverName = escapeHtml(output.coverName);
     const coverMeta = escapeHtml(output.coverMeta);
-    return `${pdfCard}<article class="result-card cover-card"><div class="result-card-top"><div class="result-type webp-type">WEBP</div><span class="result-status">COVER</span></div><div class="cover-preview"><img src="${output.coverUrl}" alt="ตัวอย่าง cover จาก ${pdfName}" /></div><div class="cover-info"><div><h3 title="${coverName}">${coverName}</h3><p>${coverMeta}</p></div><a class="download-button secondary" href="${output.coverUrl}" download="${coverName}"><span>Download cover</span><span>↓</span></a></div></article>`;
+    const coverCard = `<article class="result-card cover-card"><div class="result-card-top"><div class="result-type webp-type">WEBP</div><span class="result-status">COVER</span></div><div class="cover-preview"><img src="${output.coverUrl}" alt="ตัวอย่าง cover จาก ${pdfName}" /></div><div class="cover-info"><div><h3 title="${coverName}">${coverName}</h3><p>${coverMeta}</p></div><a class="download-button secondary" href="${output.coverUrl}" download="${coverName}"><span>Download cover</span><span>↓</span></a></div></article>`;
+    return `<section class="result-file-group"><div class="result-file-heading"><span class="result-file-index">FILE ${String(index + 1).padStart(2, '0')}</span><strong title="${pdfName}">${pdfName}</strong></div><div class="result-file-cards">${pdfCard}${coverCard}</div></section>`;
   }).join('');
 }
 
