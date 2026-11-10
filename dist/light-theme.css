@@ -463,3 +463,15 @@ footer { border-top-color: #e1daed; background: #f6f2fb; color: #a296b2; }
 @media (max-width: 560px) {
   .result-file-cards { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Keep the quality summary beside the results title so each batch is easy to scan. */
+.results-head { align-items: stretch; }
+.results-title-copy { flex: 0 0 34%; min-width: 0; padding-top: 3px; }
+.results-head-aside { display: flex; flex: 1 1 auto; min-width: 0; flex-direction: column; align-items: stretch; gap: 8px; }
+.results-head-aside .output-state { align-self: flex-end; }
+.results-head .verification-card { width: 100%; margin-top: 0; }
+.results-head .verification-heading { align-items: center; }
+@media (max-width: 600px) {
+  .results-head-aside { width: 100%; }
+  .results-head-aside .output-state { align-self: flex-start; }
+}
