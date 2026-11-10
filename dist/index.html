@@ -39,12 +39,12 @@
           <section class="input-pane upload-panel" id="upload" aria-labelledby="input-heading">
             <div class="panel-bar"><div class="panel-title"><span class="panel-icon upload-icon">↑</span><div><p class="panel-eyebrow">STEP 01</p><h2 id="input-heading">Add a PDF</h2></div></div><span class="panel-meta">INPUT</span></div>
             <div class="upload-intro"><p>ลากไฟล์มาวาง หรือเลือกจากเครื่องของคุณ</p><span>รองรับ PDF เท่านั้น · ไฟล์ต้นฉบับไม่ถูกแก้ไข</span></div>
-            <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="เลือกไฟล์ PDF">
-              <input id="file-input" type="file" accept=".pdf,application/pdf,application/octet-stream" hidden />
-              <div class="drop-center"><div class="drop-icon"><span>↑</span></div><div class="drop-copy"><strong>Drop your PDF here</strong><span>หรือ <u>Choose a file</u> จากเครื่อง</span></div></div>
-              <div class="drop-hint">ไฟล์จะถูกประมวลผลในเบราว์เซอร์ของคุณ</div>
+            <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="เลือกไฟล์ PDF ได้หลายไฟล์">
+              <input id="file-input" type="file" accept=".pdf,application/pdf,application/octet-stream" multiple hidden />
+              <div class="drop-center"><div class="drop-icon"><span>↑</span></div><div class="drop-copy"><strong>Drop your PDFs here</strong><span>หรือ <u>Choose files</u> จากเครื่อง</span></div></div>
+              <div class="drop-hint">เลือกได้หลายไฟล์ · ไฟล์จะถูกประมวลผลในเบราว์เซอร์ของคุณ</div>
             </div>
-            <div class="file-card hidden" id="file-card"><div class="file-icon">PDF</div><div class="file-details"><strong id="file-name">document.pdf</strong><span id="file-size">0 KB</span></div><span class="file-ready">READY</span><button id="remove-file" class="icon-button" type="button" aria-label="นำไฟล์ออก">×</button></div>
+            <div class="file-list hidden" id="file-list" aria-live="polite"></div>
             <div class="action-row"><div class="action-buttons"><button class="primary-button" id="process-button" type="button" disabled><span id="process-label">Clean PDF & create cover</span><span class="button-arrow">↗</span></button><button class="quality-button" id="compress-button" type="button" disabled aria-label="Compress PDF — 150 DPI, Image Quality 85%, Color No Change"><span><strong>Compress PDF</strong><small>— 150 DPI · Quality 85% · Color No Change</small></span><span class="button-arrow">↗</span></button></div><p class="action-caption"><span class="lock-icon">⌁</span><span>Private on this device</span><small id="action-hint">WebP cover ไม่เกิน 500 KB</small></p></div>
             <div class="status-panel hidden" id="status-panel" aria-live="polite"><div class="status-spinner"></div><div><strong id="status-title">กำลังเตรียมไฟล์…</strong><span id="status-detail">กำลังอ่านโครงสร้าง PDF</span></div></div>
             <p class="error-message hidden" id="error-message" role="alert"></p>
@@ -54,10 +54,7 @@
             <div class="panel-bar"><div class="panel-title"><span class="panel-icon output-icon">↓</span><div><p class="panel-eyebrow">STEP 02</p><h2>Output files</h2></div></div><span class="success-badge" id="overall-badge">รอไฟล์</span></div>
             <div class="results-head"><div><h2 id="results-title">Your clean files<br /><i>are ready.</i></h2><p>ไฟล์ผลลัพธ์ของคุณจะแสดงที่นี่</p></div><span class="output-state">PDF + WEBP</span></div>
             <div class="output-empty" id="output-empty"><div class="empty-icon">↓</div><strong>Nothing here yet</strong><p>อัปโหลด PDF ด้านบนเพื่อเริ่มต้น</p></div>
-            <div class="result-grid">
-              <article class="result-card"><div class="result-card-top"><div class="result-type pdf-type">PDF</div><span class="result-status" id="pdf-result-status">CLEANED</span></div><div class="result-card-title"><h3 id="output-pdf-name">document.pdf</h3><span class="result-check">✓</span></div><p id="pdf-result-meta">—</p><a class="download-button" id="pdf-download" download><span>Download PDF</span><span>↓</span></a></article>
-              <article class="result-card cover-card"><div class="result-card-top"><div class="result-type webp-type">WEBP</div><span class="result-status">COVER</span></div><div class="cover-preview"><img id="cover-preview" alt="ตัวอย่าง cover จากหน้าแรกของ PDF" /></div><div class="cover-info"><div><h3 id="output-cover-name">cover.webp</h3><p id="cover-result-meta">—</p></div><a class="download-button secondary" id="cover-download" download><span>Download cover</span><span>↓</span></a></div></article>
-            </div>
+            <div class="result-grid" id="result-grid"></div>
             <div class="verification-card"><div class="verification-heading"><div><p class="panel-eyebrow">QUALITY CHECK</p><h3>Everything looks good</h3></div><span id="verification-summary">รอผลลัพธ์</span></div><div class="verification-grid"><div class="verification-item" id="check-pages"><span class="check-mark">—</span><div><strong>จำนวนหน้า</strong><small>เท่ากับต้นฉบับ</small></div></div><div class="verification-item" id="check-metadata"><span class="check-mark">—</span><div><strong>Metadata</strong><small>ล้างข้อมูลแล้ว</small></div></div><div class="verification-item" id="check-render"><span class="check-mark">—</span><div><strong>หน้าแรก</strong><small>เรนเดอร์ตรงกัน</small></div></div><div class="verification-item" id="check-cover"><span class="check-mark">—</span><div><strong>WebP</strong><small>ไม่เกิน 500 KB</small></div></div></div></div>
             <button class="reset-button" id="reset-button" type="button">Start with another file <span>↗</span></button>
           </section>

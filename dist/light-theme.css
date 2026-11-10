@@ -437,3 +437,17 @@ footer { border-top-color: #e1daed; background: #f6f2fb; color: #a296b2; }
 .results.compress-mode .pdf-type { background: var(--purple-soft); color: #6849bf; }
 .results.compress-mode .download-button { background: var(--purple); }
 .results.compress-mode .download-button:hover { background: #8462d7; }
+
+.file-list { display: flex; flex-direction: column; gap: 8px; max-height: 185px; margin-top: 11px; overflow-y: auto; }
+.file-list .file-card { margin-top: 0; }
+.file-list .file-card + .file-card { margin-top: 0; }
+.dropzone.has-file { min-height: 82px; }
+.dropzone.has-file::after { content: 'Drop more PDFs here · click to add'; color: var(--text-soft); font-size: 12px; }
+.add-more-button { align-self: flex-start; padding: 4px 2px; border: 0; background: transparent; color: var(--blue); cursor: pointer; font-size: 12px; font-weight: 600; }
+.add-more-button:hover { color: #5b3dbb; text-decoration: underline; text-underline-offset: 3px; }
+.result-grid { max-height: 360px; overflow-y: auto; padding: 2px; }
+.result-grid .result-card { min-height: 175px; }
+.result-grid .cover-card { min-height: 175px; }
+@media (max-width: 850px) {
+  .result-grid { max-height: none; overflow: visible; }
+}

@@ -1,7 +1,7 @@
 const $ = (selector) => document.querySelector(selector);
 const dropzone = $('#dropzone');
 const input = $('#file-input');
-const fileCard = $('#file-card');
+const fileList = $('#file-list');
 const inputPane = $('.input-pane');
 const actionRow = $('.action-row');
 const processButton = $('#process-button');
@@ -9,15 +9,12 @@ const compressButton = $('#compress-button');
 const statusPanel = $('#status-panel');
 const errorMessage = $('#error-message');
 const results = $('#results');
-const coverCard = $('.cover-card');
-const pdfResultStatus = $('#pdf-result-status');
+const resultGrid = $('#result-grid');
 const metadataKeys = ['Title', 'Author', 'Subject', 'Keywords', 'Creator', 'Producer', 'CreationDate', 'ModDate'];
 const compressionSettings = { dpi: 150, imageQuality: 0.85, colorMode: 'No Change', colorSpace: 'srgb' };
-let selectedFile = null;
+let selectedFiles = [];
 let outputUrls = [];
 
-$('#output-pdf-name').textContent = 'document.pdf';
-$('#output-cover-name').textContent = 'cover.webp';
 const workspaceTitle = $('#workspace-title');
 if (workspaceTitle) workspaceTitle.innerHTML = 'Polish your PDF<br /><i>in one click.</i>';
 $('#results-title').innerHTML = 'Your clean files<br /><i>are ready.</i>';
@@ -30,10 +27,8 @@ const setStatus = (title, detail) => { $('#status-title').textContent = title; $
 function configureResults(mode = 'clean') {
   const isCompress = mode === 'compress';
   results.classList.toggle('compress-mode', isCompress);
-  coverCard.classList.toggle('hidden', isCompress);
   $('#results-title').innerHTML = isCompress ? 'Your compressed PDF<br /><i>is ready.</i>' : 'Your clean files<br /><i>are ready.</i>';
   $('.output-state').textContent = isCompress ? 'PDF ONLY' : 'PDF + WEBP';
-  pdfResultStatus.textContent = isCompress ? 'COMPRESSED' : 'CLEANED';
   $('#action-hint').textContent = isCompress ? `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · Color ${compressionSettings.colorMode}` : 'WebP cover ไม่เกิน 500 KB';
   $('#check-metadata strong').textContent = 'Metadata';
   $('#check-metadata small').textContent = isCompress ? 'พยายามคงข้อมูลเดิม' : 'ล้างข้อมูลแล้ว';
@@ -59,41 +54,68 @@ async function isPdfFile(file) {
   return text.includes('%PDF-') || file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
 }
 
-async function setFile(file) {
+function renderFileList() {
+  if (!selectedFiles.length) {
+    fileList.innerHTML = '';
+    fileList.classList.add('hidden');
+    dropzone.classList.remove('has-file');
+    return;
+  }
+  fileList.innerHTML = `${selectedFiles.map((file, index) => { const safeName = escapeHtml(file.name || 'document.pdf'); return `<div class="file-card"><div class="file-icon">PDF</div><div class="file-details"><strong title="${safeName}">${safeName}</strong><span>${formatBytes(file.size)}</span></div><span class="file-ready">READY</span><button class="icon-button remove-selected-file" type="button" data-file-index="${index}" aria-label="นำ ${safeName} ออก">×</button></div>`; }).join('')}<button class="add-more-button" type="button" id="add-more-files">+ Add more PDFs</button>`;
+  fileList.classList.remove('hidden');
+  dropzone.classList.add('has-file');
+}
+
+async function setFiles(files) {
   clearError();
-  if (!file) return;
-  if (!(await isPdfFile(file))) { setError('ไฟล์นี้ไม่ใช่ PDF ที่อ่านได้ กรุณาเลือกไฟล์ PDF'); return; }
-  selectedFile = file;
-  $('#file-name').textContent = file.name || 'document.pdf';
-  $('#file-size').textContent = formatBytes(file.size);
-  fileCard.classList.remove('hidden');
+  const incomingFiles = files.filter(Boolean);
+  if (!incomingFiles.length) return;
+  const checks = await Promise.all(incomingFiles.map(async (file) => ({ file, valid: await isPdfFile(file) })));
+  const invalid = checks.filter((item) => !item.valid).map((item) => item.file.name).filter(Boolean);
+  if (invalid.length) {
+    setError(`${invalid.join(', ')} ไม่ใช่ PDF ที่อ่านได้ กรุณาเลือกเฉพาะไฟล์ PDF`);
+    return;
+  }
+  const existing = new Set(selectedFiles.map((file) => `${file.name}:${file.size}:${file.lastModified}`));
+  selectedFiles = selectedFiles.concat(incomingFiles.filter((file) => !existing.has(`${file.name}:${file.size}:${file.lastModified}`)));
+  renderFileList();
   processButton.disabled = false;
   compressButton.disabled = false;
-  dropzone.classList.add('has-file');
-  dropzone.appendChild(fileCard);
   results.classList.remove('ready');
   configureResults('clean');
 }
 
 dropzone.addEventListener('click', () => input.click());
 dropzone.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); input.click(); } });
-input.addEventListener('change', (event) => { void setFile(event.target.files[0]); });
+input.addEventListener('change', (event) => { const files = Array.from(event.target.files || []); input.value = ''; void setFiles(files); });
 ['dragenter', 'dragover'].forEach((eventName) => dropzone.addEventListener(eventName, (event) => { event.preventDefault(); dropzone.classList.add('dragover'); }));
 ['dragleave', 'drop'].forEach((eventName) => dropzone.addEventListener(eventName, (event) => { event.preventDefault(); dropzone.classList.remove('dragover'); }));
-dropzone.addEventListener('drop', (event) => { void setFile(event.dataTransfer.files[0]); });
-$('#remove-file').addEventListener('click', (event) => { event.stopPropagation(); resetAll(); });
+dropzone.addEventListener('drop', (event) => { void setFiles(Array.from(event.dataTransfer.files || [])); });
+fileList.addEventListener('click', (event) => {
+  const removeButton = event.target.closest('.remove-selected-file');
+  if (removeButton) {
+    event.stopPropagation();
+    selectedFiles.splice(Number(removeButton.dataset.fileIndex), 1);
+    renderFileList();
+    if (!selectedFiles.length) resetAll();
+    return;
+  }
+  if (event.target.closest('#add-more-files')) {
+    event.stopPropagation();
+    input.click();
+  }
+});
 $('#reset-button').addEventListener('click', resetAll);
 
 function resetAll() {
   outputUrls.forEach((url) => URL.revokeObjectURL(url));
   outputUrls = [];
-  selectedFile = null;
+  selectedFiles = [];
   input.value = '';
-  inputPane.insertBefore(fileCard, actionRow);
-  fileCard.classList.add('hidden');
-  dropzone.classList.remove('has-file');
+  renderFileList();
   processButton.disabled = true;
   compressButton.disabled = true;
+  resultGrid.innerHTML = '';
   results.classList.remove('ready');
   configureResults('clean');
   statusPanel.classList.add('hidden');
@@ -286,115 +308,155 @@ function updateCheck(id, passed) {
   item.querySelector('.check-mark').textContent = passed ? '✓' : '!';
 }
 
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+}
+
+function fileStem(name) {
+  return (name || 'document.pdf').replace(/\.pdf$/i, '') || 'document';
+}
+
+function renderResultCards(mode, outputs) {
+  const isCompress = mode === 'compress';
+  resultGrid.innerHTML = outputs.map((output) => {
+    const pdfName = escapeHtml(output.pdfName);
+    const pdfMeta = escapeHtml(output.pdfMeta);
+    const pdfCard = `<article class="result-card"><div class="result-card-top"><div class="result-type pdf-type">PDF</div><span class="result-status">${isCompress ? 'COMPRESSED' : 'CLEANED'}</span></div><div class="result-card-title"><h3 title="${pdfName}">${pdfName}</h3><span class="result-check">✓</span></div><p>${pdfMeta}</p><a class="download-button" href="${output.pdfUrl}" download="${pdfName}"><span>Download PDF</span><span>↓</span></a></article>`;
+    if (isCompress) return pdfCard;
+    const coverName = escapeHtml(output.coverName);
+    const coverMeta = escapeHtml(output.coverMeta);
+    return `${pdfCard}<article class="result-card cover-card"><div class="result-card-top"><div class="result-type webp-type">WEBP</div><span class="result-status">COVER</span></div><div class="cover-preview"><img src="${output.coverUrl}" alt="ตัวอย่าง cover จาก ${pdfName}" /></div><div class="cover-info"><div><h3 title="${coverName}">${coverName}</h3><p>${coverMeta}</p></div><a class="download-button secondary" href="${output.coverUrl}" download="${coverName}"><span>Download cover</span><span>↓</span></a></div></article>`;
+  }).join('');
+}
+
+function updateBatchChecks(mode, outputs, totalFiles) {
+  const isCompress = mode === 'compress';
+  const passedFiles = outputs.filter((output) => output.passed).length;
+  const allPassed = outputs.length === totalFiles && passedFiles === totalFiles;
+  updateCheck('check-pages', outputs.length > 0 && outputs.every((output) => output.verification.pagesMatch));
+  updateCheck('check-metadata', outputs.length > 0 && outputs.every((output) => isCompress ? output.verification.metadataPreserved : output.verification.metadataCleared));
+  updateCheck('check-render', outputs.length > 0 && outputs.every((output) => output.verification.renderMatch));
+  updateCheck('check-cover', outputs.length > 0 && outputs.every((output) => isCompress ? output.verification.sizeNotLarger : output.verification.coverWithinLimit));
+  $('#verification-summary').textContent = `${passedFiles}/${totalFiles} ไฟล์ผ่านการตรวจสอบ`;
+  $('#overall-badge').textContent = allPassed ? '✓ ตรวจสอบแล้ว' : '! ตรวจสอบซ้ำ';
+  $('#overall-badge').classList.toggle('warning-badge', !allPassed);
+}
+
+function showBatchErrors(errors) {
+  if (!errors.length) return;
+  const names = errors.map((item) => item.name).join(', ');
+  setError(`ประมวลผลไม่สำเร็จ ${errors.length} ไฟล์: ${names}`);
+}
+
 processButton.addEventListener('click', async () => {
-  if (!selectedFile) return;
+  if (!selectedFiles.length) return;
+  const files = selectedFiles.slice();
   clearError();
   processButton.disabled = true;
   statusPanel.classList.remove('hidden');
-  setStatus('กำลังอ่านไฟล์…', 'ตรวจสอบโครงสร้าง PDF และจำนวนหน้า');
+  setStatus('กำลังเตรียมไฟล์…', `กำลังประมวลผล ${files.length} ไฟล์`);
+  const outputs = [];
+  const errors = [];
   try {
-    const buffer = await selectedFile.arrayBuffer();
     const maxKB = 500;
-    await openPdf(buffer);
-    setStatus('กำลังลบ metadata…', 'ใช้โหมดอ่าน PDF แบบ tolerant โดยไม่บีบอัดเนื้อหา');
-    const cleanedBytes = await stripMetadata(buffer);
-    setStatus('กำลังสร้าง cover…', `เรนเดอร์หน้าแรกเป็น WebP ไม่เกิน ${maxKB} KB`);
-    const cover = await createCover(buffer, maxKB);
-    setStatus('กำลังตรวจสอบผลลัพธ์…', 'เปรียบเทียบจำนวนหน้า metadata และการเรนเดอร์หน้าแรก');
-    const verification = await readVerification(buffer, cleanedBytes, cover);
-    const allPassed = verification.pagesMatch && verification.renderMatch && verification.metadataCleared && verification.coverWithinLimit && cover.size <= maxKB * 1024;
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      try {
+        setStatus(`กำลังลบ metadata (${index + 1}/${files.length})…`, file.name);
+        const buffer = await file.arrayBuffer();
+        await openPdf(buffer);
+        const cleanedBytes = await stripMetadata(buffer);
+        setStatus(`กำลังสร้าง cover (${index + 1}/${files.length})…`, file.name);
+        const cover = await createCover(buffer, maxKB);
+        setStatus(`กำลังตรวจสอบผลลัพธ์ (${index + 1}/${files.length})…`, file.name);
+        const verification = await readVerification(buffer, cleanedBytes, cover);
+        const pdfBlob = new Blob([cleanedBytes], { type: 'application/pdf' });
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const coverUrl = URL.createObjectURL(cover);
+        outputUrls.push(pdfUrl, coverUrl);
+        const coverName = files.length === 1 ? 'cover.webp' : `${fileStem(file.name)}-cover.webp`;
+        const passed = verification.pagesMatch && verification.renderMatch && verification.metadataCleared && verification.coverWithinLimit && cover.size <= maxKB * 1024;
+        outputs.push({ pdfName: file.name || 'document.pdf', pdfUrl, pdfMeta: `${formatBytes(pdfBlob.size)} · ไฟล์ใหม่ · ไม่บีบอัด`, coverName, coverUrl, coverMeta: `${formatBytes(cover.size)} · หน้าแรก · สูงสุด ${formatBytes(maxKB * 1024)}`, verification, passed });
+      } catch (error) {
+        errors.push({ name: file.name || 'document.pdf', error });
+        console.error(`PDF Prep Studio processing error (${file.name}):`, error);
+      }
+    }
+    if (!outputs.length) throw new Error('ไม่สามารถประมวลผล PDF ที่เลือกได้');
     configureResults('clean');
-    const pdfBlob = new Blob([cleanedBytes], { type: 'application/pdf' });
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const coverUrl = URL.createObjectURL(cover);
-    outputUrls = [pdfUrl, coverUrl];
-    const pdfName = selectedFile.name || 'document.pdf';
-    const coverName = 'cover.webp';
-    $('#output-pdf-name').textContent = pdfName;
-    $('#pdf-result-meta').textContent = `${formatBytes(pdfBlob.size)} · ไฟล์ใหม่ · ไม่บีบอัด`;
-    $('#pdf-download').href = pdfUrl;
-    $('#pdf-download').download = pdfName;
-    $('#output-cover-name').textContent = coverName;
-    $('#cover-result-meta').textContent = `${formatBytes(cover.size)} · หน้าแรก · สูงสุด ${formatBytes(maxKB * 1024)}`;
-    $('#cover-download').href = coverUrl;
-    $('#cover-download').download = coverName;
-    $('#cover-preview').src = coverUrl;
-    updateCheck('check-pages', verification.pagesMatch);
-    updateCheck('check-metadata', verification.metadataCleared);
-    updateCheck('check-render', verification.renderMatch);
-    updateCheck('check-cover', verification.coverWithinLimit && cover.size <= maxKB * 1024);
-    $('#verification-summary').textContent = allPassed ? 'ผ่าน 4/4 รายการ' : 'มีรายการที่ต้องตรวจซ้ำ';
-    $('#overall-badge').textContent = allPassed ? '✓ ตรวจสอบแล้ว' : '! ตรวจสอบซ้ำ';
-    $('#overall-badge').classList.toggle('warning-badge', !allPassed);
-    processButton.disabled = false;
-    compressButton.disabled = false;
+    renderResultCards('clean', outputs);
+    updateBatchChecks('clean', outputs, files.length);
     statusPanel.classList.add('hidden');
     results.classList.remove('hidden');
     results.classList.add('ready');
+    showBatchErrors(errors);
   } catch (error) {
     statusPanel.classList.add('hidden');
+    setError(errors.length ? `ประมวลผลไม่สำเร็จ: ${errors.map((item) => item.name).join(', ')}` : explainError(error));
+    console.error('PDF Prep Studio processing error:', error);
+  } finally {
     processButton.disabled = false;
     compressButton.disabled = false;
-    setError(explainError(error));
-    console.error('PDF Prep Studio processing error:', error);
   }
 });
 
 compressButton.addEventListener('click', async () => {
-  if (!selectedFile) return;
+  if (!selectedFiles.length) return;
+  const files = selectedFiles.slice();
   clearError();
   compressButton.disabled = true;
   statusPanel.classList.remove('hidden');
-  setStatus('กำลังอ่านไฟล์…', 'ตรวจสอบโครงสร้าง PDF และจำนวนหน้า');
+  setStatus('กำลังเตรียมไฟล์…', `กำลังประมวลผล ${files.length} ไฟล์`);
+  const outputs = [];
+  const errors = [];
   try {
-    const buffer = await selectedFile.arrayBuffer();
-    await openPdf(buffer);
-    setStatus('กำลังบีบอัด PDF…', `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · Color ${compressionSettings.colorMode}`);
-    let compressed = await compressPdf(buffer, (pageNumber, totalPages) => setStatus(`กำลังบีบอัดหน้า ${pageNumber}/${totalPages}…`, `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · ไม่ปรับสี`));
-    setStatus('กำลังตรวจสอบคุณภาพ…', 'เปรียบเทียบจำนวนหน้า metadata และการเรนเดอร์หน้าแรก');
-    let verification = await readCompressionVerification(buffer, compressed.bytes);
-    if (!verification.renderMatch || !verification.metadataPreserved) {
-      setStatus('กำลังรักษาสีต้นฉบับ…', 'ผลลัพธ์ JPEG ต่างจากต้นฉบับมากเกินไป จึงใช้ fallback แบบไม่ rasterize');
-      const losslessFallback = await optimizePdfLosslessly(buffer);
-      const fallbackVerification = await readCompressionVerification(buffer, losslessFallback.bytes);
-      if (fallbackVerification.renderMatch && fallbackVerification.metadataPreserved) {
-        compressed = losslessFallback;
-        verification = fallbackVerification;
-      } else {
-        compressed = { bytes: new Uint8Array(buffer.slice(0)), reduced: false, strategy: 'original' };
-        verification = await readCompressionVerification(buffer, compressed.bytes);
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      try {
+        setStatus(`กำลังบีบอัดไฟล์ ${index + 1}/${files.length}…`, file.name);
+        const buffer = await file.arrayBuffer();
+        await openPdf(buffer);
+        let compressed = await compressPdf(buffer, (pageNumber, totalPages) => setStatus(`กำลังบีบอัด ${index + 1}/${files.length} · หน้า ${pageNumber}/${totalPages}…`, `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · ไม่ปรับสี`));
+        setStatus(`กำลังตรวจสอบคุณภาพ ${index + 1}/${files.length}…`, file.name);
+        let verification = await readCompressionVerification(buffer, compressed.bytes);
+        if (!verification.renderMatch || !verification.metadataPreserved) {
+          setStatus('กำลังรักษาสีต้นฉบับ…', file.name);
+          const losslessFallback = await optimizePdfLosslessly(buffer);
+          const fallbackVerification = await readCompressionVerification(buffer, losslessFallback.bytes);
+          if (fallbackVerification.renderMatch && fallbackVerification.metadataPreserved) {
+            compressed = losslessFallback;
+            verification = fallbackVerification;
+          } else {
+            compressed = { bytes: new Uint8Array(buffer.slice(0)), reduced: false, strategy: 'original' };
+            verification = await readCompressionVerification(buffer, compressed.bytes);
+          }
+        }
+        const pdfBlob = new Blob([compressed.bytes], { type: 'application/pdf' });
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        outputUrls.push(pdfUrl);
+        const compressionLabel = compressed.strategy === 'jpeg' ? `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · Color ${compressionSettings.colorMode}` : compressed.strategy === 'lossless' ? 'Color-safe fallback · lossless optimize' : 'ใช้ไฟล์เดิมเพื่อรักษาสี';
+        const outputLabel = compressed.strategy === 'original' ? 'ใช้ไฟล์เดิมเพื่อรักษาสี' : compressed.reduced ? compressionLabel : 'ไฟล์เดิมเหมาะสมอยู่แล้ว';
+        const passed = verification.pagesMatch && verification.renderMatch && verification.metadataPreserved && verification.sizeNotLarger;
+        outputs.push({ pdfName: file.name || 'document.pdf', pdfUrl, pdfMeta: `${formatBytes(pdfBlob.size)} · ${outputLabel}`, verification, passed });
+      } catch (error) {
+        errors.push({ name: file.name || 'document.pdf', error });
+        console.error(`PDF Prep Studio compression error (${file.name}):`, error);
       }
     }
-    const allPassed = verification.pagesMatch && verification.renderMatch && verification.metadataPreserved && verification.sizeNotLarger;
+    if (!outputs.length) throw new Error('ไม่สามารถบีบอัด PDF ที่เลือกได้');
     configureResults('compress');
-    $('#check-render small').textContent = compressed.strategy === 'jpeg' ? 'ลดลงเล็กน้อย' : 'สีเดิม / ไม่ rasterize';
-    const pdfBlob = new Blob([compressed.bytes], { type: 'application/pdf' });
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    outputUrls = [pdfUrl];
-    const pdfName = selectedFile.name || 'document.pdf';
-    $('#output-pdf-name').textContent = pdfName;
-    const compressionLabel = compressed.strategy === 'jpeg' ? `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · Color ${compressionSettings.colorMode}` : compressed.strategy === 'lossless' ? 'Color-safe fallback · lossless optimize' : 'ใช้ไฟล์เดิมเพื่อรักษาสี';
-    const outputLabel = compressed.strategy === 'original' ? 'ใช้ไฟล์เดิมเพื่อรักษาสี' : compressed.reduced ? compressionLabel : 'ไฟล์เดิมเหมาะสมอยู่แล้ว';
-    $('#pdf-result-meta').textContent = `${formatBytes(pdfBlob.size)} · ${outputLabel}`;
-    $('#pdf-download').href = pdfUrl;
-    $('#pdf-download').download = pdfName;
-    updateCheck('check-pages', verification.pagesMatch);
-    updateCheck('check-metadata', verification.metadataPreserved);
-    updateCheck('check-render', verification.renderMatch);
-    updateCheck('check-cover', verification.sizeNotLarger);
-    $('#verification-summary').textContent = allPassed ? 'ผ่าน 4/4 รายการ' : 'มีรายการที่ต้องตรวจซ้ำ';
-    $('#overall-badge').textContent = allPassed ? '✓ ตรวจสอบแล้ว' : '! ตรวจสอบซ้ำ';
-    $('#overall-badge').classList.toggle('warning-badge', !allPassed);
-    processButton.disabled = false;
-    compressButton.disabled = false;
+    renderResultCards('compress', outputs);
+    updateBatchChecks('compress', outputs, files.length);
     statusPanel.classList.add('hidden');
     results.classList.remove('hidden');
     results.classList.add('ready');
+    showBatchErrors(errors);
   } catch (error) {
     statusPanel.classList.add('hidden');
+    setError(errors.length ? `ประมวลผลไม่สำเร็จ: ${errors.map((item) => item.name).join(', ')}` : explainError(error));
+    console.error('PDF Prep Studio compression error:', error);
+  } finally {
     processButton.disabled = false;
     compressButton.disabled = false;
-    setError(explainError(error));
-    console.error('PDF Prep Studio compression error:', error);
   }
 });
