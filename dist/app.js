@@ -28,7 +28,8 @@ function configureResults(mode = 'clean') {
   const isCompress = mode === 'compress';
   results.classList.toggle('compress-mode', isCompress);
   $('#results-title').innerHTML = isCompress ? 'Your compressed PDF<br /><i>is ready.</i>' : 'Your clean files<br /><i>are ready.</i>';
-  $('.output-state').textContent = isCompress ? 'PDF ONLY' : 'PDF + WEBP';
+  const outputState = $('.output-state');
+  if (outputState) outputState.textContent = isCompress ? 'PDF ONLY' : 'PDF + WEBP';
   $('#action-hint').textContent = isCompress ? `${compressionSettings.dpi} DPI · Quality ${compressionSettings.imageQuality * 100}% · Color ${compressionSettings.colorMode}` : 'WebP cover ไม่เกิน 500 KB';
   $('#check-metadata strong').textContent = 'Metadata';
   $('#check-metadata small').textContent = isCompress ? 'พยายามคงข้อมูลเดิม' : 'ล้างข้อมูลแล้ว';
